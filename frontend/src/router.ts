@@ -8,6 +8,8 @@ import AdminLogin from './views/admin/Login.vue'
 import AdminPost from './views/admin/AdminPost.vue'
 import AdminList from './views/admin/AdminList.vue'
 import UserList from './views/admin/UserList.vue'
+import DictList from './views/admin/DictList.vue'
+import MenuList from './views/admin/MenuList.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -19,7 +21,9 @@ const routes = [
     children: [
       { path: '', component: AdminPost },
       { path: 'list', component: AdminList },
-      { path: 'users', component: UserList }
+      { path: 'users', component: UserList },
+      { path: 'dictionaries', component: DictList },
+      { path: 'menus', component: MenuList }
     ]
   }
 ]

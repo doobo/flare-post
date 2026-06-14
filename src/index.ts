@@ -290,6 +290,310 @@ app.delete("/api/users/:id", authMiddleware, async (c) => {
   return c.json({ success: true });
 });
 
+// Dictionary Encryption Helpers
+let cachedDictKey: CryptoKey | null = null;
+
+async function getDictEncryptionKey(env: Bindings): Promise<CryptoKey> {
+  if (cachedDictKey) return cachedDictKey;
+
+  try {
+    const keyStr = await env.KV.get("DICT_ENCRYPTION_KEY");
+    if (keyStr) {
+      const importedKey = await crypto.subtle.importKey(
+        "jwk",
+        JSON.parse(keyStr),
+        { name: "AES-GCM" },
+        true,
+        ["encrypt", "decrypt"]
+      );
+      cachedDictKey = importedKey;
+      return importedKey;
+    }
+  } catch (e) {
+    console.error("Failed to load dict key from KV:", e);
+  }
+
+  const key = await crypto.subtle.generateKey(
+    { name: "AES-GCM", length: 256 },
+    true,
+    ["encrypt", "decrypt"]
+  ) as CryptoKey;
+
+  const jwk = await crypto.subtle.exportKey("jwk", key);
+  await env.KV.put("DICT_ENCRYPTION_KEY", JSON.stringify(jwk));
+
+  cachedDictKey = key;
+  return key;
+}
+
+async function encryptDictValue(plaintext: string, env: Bindings): Promise<string> {
+  const key = await getDictEncryptionKey(env);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encoded = new TextEncoder().encode(plaintext);
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    key,
+    encoded
+  );
+  const combined = new Uint8Array(iv.length + ciphertext.byteLength);
+  combined.set(iv);
+  combined.set(new Uint8Array(ciphertext), iv.length);
+  return btoa(String.fromCharCode(...combined));
+}
+
+async function decryptDictValue(ciphertextBase64: string, env: Bindings): Promise<string> {
+  const key = await getDictEncryptionKey(env);
+  const combined = Uint8Array.from(atob(ciphertextBase64), c => c.charCodeAt(0));
+  const iv = combined.slice(0, 12);
+  const ciphertext = combined.slice(12);
+  const decrypted = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv },
+    key,
+    ciphertext
+  );
+  return new TextDecoder().decode(decrypted);
+}
+
+// Dictionary Management Endpoints
+app.get("/api/dictionaries", authMiddleware, async (c) => {
+  const parentId = c.req.query("parentId");
+  let query = "SELECT * FROM dictionaries ORDER BY sort_order ASC, created_at DESC";
+  let params: any[] = [];
+  if (parentId !== undefined) {
+    query = "SELECT * FROM dictionaries WHERE parent_id = ? ORDER BY sort_order ASC, created_at DESC";
+    params = [parseInt(parentId, 10)];
+  }
+  const { results } = await c.env.DB.prepare(query).bind(...params).all();
+  
+  // Mask value for encode items
+  const masked = (results || []).map((item: any) => {
+    if (item.type === 'encode' && item.value !== null) {
+      return { ...item, value: '***' };
+    }
+    return item;
+  });
+  
+  return c.json(masked);
+});
+
+app.post("/api/dictionaries", authMiddleware, async (c) => {
+  const { name, code, value, type, parent_id, sort_order, description } = await c.req.json();
+  if (!name || !code) return c.json({ success: false, error: "Name and Code are required" }, 400);
+
+  const itemType = type || 'normal';
+  let valToSave = value || null;
+
+  try {
+    if (itemType === 'encode' && value) {
+      valToSave = await encryptDictValue(value, c.env);
+    }
+
+    await c.env.DB
+      .prepare("INSERT INTO dictionaries (name, code, value, type, parent_id, sort_order, description) VALUES (?, ?, ?, ?, ?, ?, ?)")
+      .bind(
+        name,
+        code,
+        valToSave,
+        itemType,
+        parent_id !== undefined ? parseInt(parent_id, 10) : 0,
+        sort_order !== undefined ? parseInt(sort_order, 10) : 0,
+        description || null
+      )
+      .run();
+    return c.json({ success: true });
+  } catch (e: any) {
+    console.error("Save dictionary failed:", e);
+    return c.json({ success: false, error: "Database error" }, 500);
+  }
+});
+
+app.put("/api/dictionaries/:id", authMiddleware, async (c) => {
+  const id = c.req.param("id");
+  const { name, code, value, type, parent_id, sort_order, description } = await c.req.json();
+  if (!name || !code) return c.json({ success: false, error: "Name and Code are required" }, 400);
+
+  const itemType = type || 'normal';
+  let valToSave = value || null;
+
+  try {
+    if (itemType === 'encode') {
+      if (value === '***') {
+        const existing = await c.env.DB
+          .prepare("SELECT value FROM dictionaries WHERE id = ?")
+          .bind(id)
+          .first<{ value: string }>();
+        valToSave = existing ? existing.value : null;
+      } else if (value) {
+        valToSave = await encryptDictValue(value, c.env);
+      }
+    }
+
+    await c.env.DB
+      .prepare("UPDATE dictionaries SET name = ?, code = ?, value = ?, type = ?, parent_id = ?, sort_order = ?, description = ? WHERE id = ?")
+      .bind(
+        name,
+        code,
+        valToSave,
+        itemType,
+        parent_id !== undefined ? parseInt(parent_id, 10) : 0,
+        sort_order !== undefined ? parseInt(sort_order, 10) : 0,
+        description || null,
+        id
+      )
+      .run();
+    return c.json({ success: true });
+  } catch (e: any) {
+    console.error("Update dictionary failed:", e);
+    return c.json({ success: false, error: "Database error" }, 500);
+  }
+});
+
+app.delete("/api/dictionaries/:id", authMiddleware, async (c) => {
+  const id = c.req.param("id");
+
+  try {
+    await c.env.DB.prepare("DELETE FROM dictionaries WHERE id = ?").bind(id).run();
+    await c.env.DB.prepare("DELETE FROM dictionaries WHERE parent_id = ?").bind(id).run();
+    return c.json({ success: true });
+  } catch (e: any) {
+    return c.json({ success: false, error: "Database error" }, 500);
+  }
+});
+
+// Menu Management Endpoints
+app.get("/api/menus", authMiddleware, async (c) => {
+  const parentId = c.req.query("parentId");
+  const activeOnly = c.req.query("activeOnly") === "true";
+  
+  let query = "SELECT * FROM menus ORDER BY sort ASC, created_at DESC";
+  let params: any[] = [];
+  
+  if (parentId !== undefined && activeOnly) {
+    query = "SELECT * FROM menus WHERE parent_id = ? AND status = 1 ORDER BY sort ASC, created_at DESC";
+    params = [parseInt(parentId, 10)];
+  } else if (parentId !== undefined) {
+    query = "SELECT * FROM menus WHERE parent_id = ? ORDER BY sort ASC, created_at DESC";
+    params = [parseInt(parentId, 10)];
+  } else if (activeOnly) {
+    query = "SELECT * FROM menus WHERE status = 1 ORDER BY sort ASC, created_at DESC";
+  }
+  
+  const { results } = await c.env.DB.prepare(query).bind(...params).all();
+  return c.json(results);
+});
+
+app.post("/api/menus", authMiddleware, async (c) => {
+  const body = await c.req.json();
+  const { 
+    menu_name, menu_key, parent_id, path, component, type, 
+    sort, icon, class_name, url, is_external, target, 
+    permission, status, hidden, redirect, keep_alive 
+  } = body;
+  
+  if (!menu_name || !menu_key) {
+    return c.json({ success: false, error: "Menu Name and Menu Key are required" }, 400);
+  }
+  
+  try {
+    await c.env.DB
+      .prepare(`INSERT INTO menus (
+        menu_name, menu_key, parent_id, path, component, type, 
+        sort, icon, class_name, url, is_external, target, 
+        permission, status, hidden, redirect, keep_alive
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      .bind(
+        menu_name,
+        menu_key,
+        parent_id !== undefined ? parseInt(parent_id, 10) : 0,
+        path || null,
+        component || null,
+        type || 'menu',
+        sort !== undefined ? parseInt(sort, 10) : 0,
+        icon || null,
+        class_name || null,
+        url || null,
+        is_external !== undefined ? parseInt(is_external, 10) : 0,
+        target || '_self',
+        permission || null,
+        status !== undefined ? parseInt(status, 10) : 1,
+        hidden !== undefined ? parseInt(hidden, 10) : 0,
+        redirect || null,
+        keep_alive !== undefined ? parseInt(keep_alive, 10) : 0
+      )
+      .run();
+    return c.json({ success: true });
+  } catch (e: any) {
+    if (e.message?.includes('UNIQUE')) {
+      return c.json({ success: false, error: "Menu Key already exists" }, 400);
+    }
+    console.error(e);
+    return c.json({ success: false, error: "Database error" }, 500);
+  }
+});
+
+app.put("/api/menus/:id", authMiddleware, async (c) => {
+  const id = c.req.param("id");
+  const body = await c.req.json();
+  const { 
+    menu_name, menu_key, parent_id, path, component, type, 
+    sort, icon, class_name, url, is_external, target, 
+    permission, status, hidden, redirect, keep_alive 
+  } = body;
+  
+  if (!menu_name || !menu_key) {
+    return c.json({ success: false, error: "Menu Name and Menu Key are required" }, 400);
+  }
+  
+  try {
+    await c.env.DB
+      .prepare(`UPDATE menus SET 
+        menu_name = ?, menu_key = ?, parent_id = ?, path = ?, component = ?, type = ?, 
+        sort = ?, icon = ?, class_name = ?, url = ?, is_external = ?, target = ?, 
+        permission = ?, status = ?, hidden = ?, redirect = ?, keep_alive = ?
+        WHERE id = ?`)
+      .bind(
+        menu_name,
+        menu_key,
+        parent_id !== undefined ? parseInt(parent_id, 10) : 0,
+        path || null,
+        component || null,
+        type || 'menu',
+        sort !== undefined ? parseInt(sort, 10) : 0,
+        icon || null,
+        class_name || null,
+        url || null,
+        is_external !== undefined ? parseInt(is_external, 10) : 0,
+        target || '_self',
+        permission || null,
+        status !== undefined ? parseInt(status, 10) : 1,
+        hidden !== undefined ? parseInt(hidden, 10) : 0,
+        redirect || null,
+        keep_alive !== undefined ? parseInt(keep_alive, 10) : 0,
+        id
+      )
+      .run();
+    return c.json({ success: true });
+  } catch (e: any) {
+    if (e.message?.includes('UNIQUE')) {
+      return c.json({ success: false, error: "Menu Key already exists" }, 400);
+    }
+    console.error(e);
+    return c.json({ success: false, error: "Database error" }, 500);
+  }
+});
+
+app.delete("/api/menus/:id", authMiddleware, async (c) => {
+  const id = c.req.param("id");
+  try {
+    await c.env.DB.prepare("DELETE FROM menus WHERE id = ?").bind(id).run();
+    await c.env.DB.prepare("DELETE FROM menus WHERE parent_id = ?").bind(id).run();
+    return c.json({ success: true });
+  } catch (e: any) {
+    console.error(e);
+    return c.json({ success: false, error: "Database error" }, 500);
+  }
+});
+
 /* Short link system */
 app.get("/go/:id", async (c) => {
   const id = c.req.param("id");
