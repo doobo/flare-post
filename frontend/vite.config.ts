@@ -11,7 +11,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': 'http://localhost:3000',
-      '/go': 'http://localhost:3000'
+      '/go': 'http://localhost:3000',
+      '/redirect': 'http://localhost:3000'
     }
   }
 })

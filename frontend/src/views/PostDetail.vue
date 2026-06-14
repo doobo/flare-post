@@ -40,7 +40,7 @@
         
         <!-- Content -->
         <div class="p-8 sm:p-10">
-          <div class="prose prose-indigo prose-lg max-w-none prose-a:text-indigo-600 hover:prose-a:text-indigo-500 prose-img:rounded-xl prose-img:shadow-md" v-html="renderMarkdown(post.content_md)"></div>
+          <div class="prose prose-indigo prose-lg max-w-none prose-a:text-indigo-600 hover:prose-a:text-indigo-500 prose-img:rounded-xl prose-img:shadow-md" v-html="renderContent(post)"></div>
         </div>
       </div>
     </div>
@@ -76,6 +76,7 @@ interface Post {
   id: number
   title: string
   content_md: string
+  content_type?: string
   category: string
   created_at: string
 }
@@ -96,8 +97,11 @@ const fetchPost = async () => {
   }
 }
 
-const renderMarkdown = (content: string) => {
-  return md.render(content)
+const renderContent = (post: Post) => {
+  if (post.content_type === 'richtext') {
+    return post.content_md
+  }
+  return md.render(post.content_md)
 }
 
 onMounted(() => {

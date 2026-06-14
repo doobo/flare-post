@@ -46,7 +46,7 @@
             </h2>
           </router-link>
           <p class="text-slate-600 line-clamp-3 mb-6 flex-grow">
-            {{ post.content_md.replace(/[#*`_\[\]\(\)]/g, '') }}
+            {{ getPreviewText(post) }}
           </p>
           <div class="mt-auto">
             <router-link :to="'/post/' + post.id" class="inline-flex items-center font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
@@ -79,8 +79,23 @@ interface Post {
   id: number
   title: string
   content_md: string
+  content_type?: string
   category: string
   created_at: string
+}
+
+const getPreviewText = (post: Post): string => {
+  let text = post.content_md || ''
+  if (post.content_type === 'richtext') {
+    // Strip HTML tags
+    text = text.replace(/<\/?[^>]+(>|$)/g, "")
+  } else {
+    // Strip markdown links [text](url) -> text
+    text = text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    // Strip headers, bold, italics, code blocks, etc.
+    text = text.replace(/[#*`_~]/g, '')
+  }
+  return text.trim()
 }
 
 const posts = ref<Post[]>([])

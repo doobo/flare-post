@@ -36,6 +36,27 @@
         </template>
       </nav>
 
+      <!-- Search Bar -->
+      <div class="mb-6 bg-white rounded-2xl shadow-sm border border-slate-100 p-4 flex flex-col md:flex-row md:items-center gap-4">
+        <div class="relative flex-1">
+          <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+            <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </span>
+          <input 
+            v-model="searchQuery" 
+            type="text" 
+            class="w-full pl-10 pr-4 py-2 border border-slate-250 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" 
+            placeholder="Search menus by display name or key..." 
+          />
+        </div>
+        <span v-if="searchQuery" class="text-xs text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full font-semibold self-start md:self-auto flex items-center">
+          <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 mr-1.5 animate-pulse"></span>
+          Global Search Mode
+        </span>
+      </div>
+
       <!-- Menu Items Table -->
       <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div v-if="loading" class="flex justify-center py-12">
@@ -69,6 +90,9 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   {{ item.menu_name }}
+                  <span v-if="searchQuery && item.parent_id" class="ml-2 inline-flex items-center text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded font-normal">
+                    Parent ID: {{ item.parent_id }}
+                  </span>
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-600">
@@ -339,7 +363,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -405,17 +429,37 @@ const currentParentName = computed(() => {
   return breadcrumbs.value[breadcrumbs.value.length - 1].name
 })
 
+const searchQuery = ref('')
+
 const fetchItems = async () => {
   loading.value = true
   const token = localStorage.getItem('adminToken')
   try {
-    const res = await fetch(`/api/menus?parentId=${currentParentId.value}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-    if (res.ok) {
-      items.value = await res.json()
-    } else if (res.status === 401) {
-      handleAuthError()
+    if (searchQuery.value.trim()) {
+      // Fetch all items globally for search
+      const res = await fetch('/api/menus', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (res.ok) {
+        const data = await res.json()
+        const q = searchQuery.value.trim().toLowerCase()
+        items.value = data.filter((item: MenuItem) => 
+          item.menu_name.toLowerCase().includes(q) || 
+          item.menu_key.toLowerCase().includes(q)
+        )
+      } else if (res.status === 401) {
+        handleAuthError()
+      }
+    } else {
+      // Fetch by parent_id
+      const res = await fetch(`/api/menus?parentId=${currentParentId.value}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      if (res.ok) {
+        items.value = await res.json()
+      } else if (res.status === 401) {
+        handleAuthError()
+      }
     }
   } catch (e) {
     console.error(e)
@@ -424,13 +468,24 @@ const fetchItems = async () => {
   }
 }
 
+// Watch search query changes with debounce
+let searchTimeout: any = null
+watch(searchQuery, () => {
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    fetchItems()
+  }, 250)
+})
+
 const drillDown = (item: MenuItem) => {
+  searchQuery.value = '' // Clear search query when drilling down
   breadcrumbs.value.push({ id: item.id, name: item.menu_name })
   currentParentId.value = item.id
   fetchItems()
 }
 
 const navigateToBreadcrumb = (idx: number) => {
+  searchQuery.value = '' // Clear search query when changing breadcrumbs
   if (idx === -1) {
     breadcrumbs.value = []
     currentParentId.value = 0

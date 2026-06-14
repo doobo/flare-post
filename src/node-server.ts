@@ -31,6 +31,14 @@ class LocalD1 {
         clicks INTEGER DEFAULT 0,
         FOREIGN KEY (post_id) REFERENCES posts(id)
       );
+      CREATE TABLE IF NOT EXISTS redirect_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        target_url TEXT NOT NULL,
+        referer TEXT,
+        ip TEXT,
+        user_agent TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE NOT NULL,
@@ -75,20 +83,45 @@ class LocalD1 {
       );
       -- Insert default admin menus
       INSERT OR IGNORE INTO menus (id, menu_name, menu_key, parent_id, path, type, sort, icon)
-      VALUES (1, 'Publish Offer', 'publish_offer', 0, '/admin', 'menu', 1, 'pencil');
+      VALUES (1, 'Publish', 'publish_offer', 0, '/admin', 'menu', 1, 'ri-edit-2-fill');
       INSERT OR IGNORE INTO menus (id, menu_name, menu_key, parent_id, path, type, sort, icon)
-      VALUES (2, 'Manage Offers', 'manage_offers', 0, '/admin/list', 'menu', 2, 'list');
+      VALUES (2, 'Offers', 'manage_offers', 0, '/admin/list', 'menu', 2, 'ri-menu-line');
       INSERT OR IGNORE INTO menus (id, menu_name, menu_key, parent_id, path, type, sort, icon)
-      VALUES (3, 'Manage Users', 'manage_users', 0, '/admin/users', 'menu', 3, 'users');
+      VALUES (3, 'Users', 'manage_users', 0, '/admin/users', 'menu', 3, 'ri-user-settings-line');
       INSERT OR IGNORE INTO menus (id, menu_name, menu_key, parent_id, path, type, sort, icon)
-      VALUES (4, 'Manage Dictionaries', 'manage_dicts', 0, '/admin/dictionaries', 'menu', 4, 'dict');
+      VALUES (4, 'Dictionary', 'manage_dicts', 0, '/admin/dictionaries', 'menu', 4, 'ri-book-3-line');
       INSERT OR IGNORE INTO menus (id, menu_name, menu_key, parent_id, path, type, sort, icon)
-      VALUES (5, 'Manage Menus', 'manage_menus', 0, '/admin/menus', 'menu', 5, 'menu');
+      VALUES (5, 'Menus', 'manage_menus', 0, '/admin/menus', 'menu', 5, 'ri-settings-3-fill');
     `);
     
     // Automatic column migration for existing tables
     try {
       this.db.exec("ALTER TABLE dictionaries ADD COLUMN type TEXT NOT NULL DEFAULT 'normal';");
+    } catch (e) {}
+    try {
+      this.db.exec("ALTER TABLE posts ADD COLUMN content_type TEXT NOT NULL DEFAULT 'markdown';");
+    } catch (e) {}
+    try {
+      this.db.exec("ALTER TABLE posts ADD COLUMN category_id INTEGER DEFAULT 0;");
+    } catch (e) {}
+    
+    // Seed default categories
+    try {
+      this.db.exec(`
+        INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (100, '分类列表', 'category_list', 'normal', 0, 1);
+        INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (101, '虚拟机', 'category_list', 'normal', 100, 1);
+        INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (102, 'VPN', 'category_list', 'normal', 100, 2);
+        INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (103, '域名', 'category_list', 'normal', 100, 3);
+        INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (104, '服务器', 'category_list', 'normal', 100, 4);
+        INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (105, '网络工具', 'category_list', 'normal', 100, 5);
+        INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (106, '安全工具', 'category_list', 'normal', 100, 6);
+        INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (107, 'KVM', 'category_list', 'normal', 101, 1);
+        INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (108, 'VMware', 'category_list', 'normal', 101, 2);
+        INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (109, '商业VPN', 'category_list', 'normal', 102, 1);
+        INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (110, '自建VPN', 'category_list', 'normal', 102, 2);
+        INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (111, '注册商', 'category_list', 'normal', 103, 1);
+        INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (112, 'DNS解析', 'category_list', 'normal', 103, 2);
+      `);
     } catch (e) {}
   }
   prepare(query: string) {

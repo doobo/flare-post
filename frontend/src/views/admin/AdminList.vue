@@ -35,6 +35,7 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <a :href="'/post/' + post.id" target="_blank" class="text-indigo-600 hover:text-indigo-900 mr-4">View</a>
+                <router-link :to="'/admin?id=' + post.id" class="text-indigo-600 hover:text-indigo-900 mr-4">Edit</router-link>
                 <button @click="deletePost(post.id)" class="text-red-600 hover:text-red-900">Delete</button>
               </td>
             </tr>

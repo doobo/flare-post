@@ -1,116 +1,188 @@
 \## 基于cloudflare的worker信息发布平台
 
 * 项目基础架构已搭建，能正常启动，后续功能优化
+* Publish页修改，支持富文本编辑，支持markdown编辑，可切换，存储文档的类型
 
-# 后台管理系统菜单表设计说明
+# 基于 Cloudflare Worker 的信息发布平台（Publish 模块优化方案）
 
-## 一、基础字段
+## 1\. 项目背景
 
-* 菜单名称（menu\_name）
-* 菜单 KEY（menu\_key，唯一标识）
-* 菜单路由（path / route）
-* 排序（sort，用于同级排序）
-* 菜单类型（type：目录 / 菜单 / 按钮）
-* 父级ID（parent\_id，默认 0，表示顶级菜单）
-* 支持树形结构（通过 parent\_id 构建）
+当前系统基于 Cloudflare Worker 已完成基础架构搭建，可正常运行。后续重点优化 **Publish 页面编辑能力、分类体系、URL 跳转逻辑**。
 
 \---
 
-## 二、扩展字段设计
+## 2\. Publish 页面功能优化
 
-### 1\. 外部链接支持
+### 2.1 编辑器能力升级
 
-* 是否外链（is\_external）
+Publish 页面支持两种编辑模式，并可自由切换：
 
-  * 0：内部路由
-  * 1：外部链接
-* 外部URL（url）
+#### （1）富文本编辑模式（Rich Text Editor）
 
-  * 当 is\_external = 1 时使用
+* 支持基础排版：
 
-\---
+  * 标题（H1/H2/H3）
+  * 加粗 / 斜体
+  * 有序 / 无序列表
+  * 链接插入
+  * 代码块（可选）
+* 所见即所得（WYSIWYG）
 
-### 2\. 跳转方式
+#### （2）Markdown 编辑模式
 
-* target（打开方式）
+* 支持标准 Markdown 语法：
 
-  * \_self：当前窗口打开
-  * \_blank：新窗口打开
+  * # 标题
+  * **bold**
+  * 
+  * list
+  * [text](url)
+  * `code`
+* 实时预览（左右分栏或切换预览）
 
-\---
+#### （3）模式切换机制
 
-### 3\. UI展示相关
+* 编辑器顶部 toggle：Rich Text ↔ Markdown
+* 切换时需处理内容转换：
 
-* icon（菜单图标）
-
-  * 用于侧边栏展示（Element Plus / FontAwesome）
-* class\_name（自定义样式类）
-
-  * 用于扩展样式控制
-
-\---
-
-### 4\. 权限控制（RBAC）
-
-* permission（权限标识）
-
-  * 控制按钮/页面访问权限
-* hidden（是否隐藏）
-
-  * 1：隐藏菜单（仍可访问）
-  * 0：显示菜单
+  * Markdown → HTML
+  * HTML → Markdown
+* 防止数据丢失（切换前提示）
 
 \---
 
-### 5\. 状态控制
+## 3\. 内容存储结构优化
 
-* status
+```json
+{
+  "id": "post\\\_id",
+  "title": "标题",
+  "content\\\_type": "richtext | markdown",
+  "content": "HTML 或 Markdown",
+  "category\\\_id": 1,
+  "created\\\_at": 1234567890,
+  "updated\\\_at": 1234567890
+}
+```
 
-  * 1：启用
-  * 0：禁用
+### 存储规则
 
-\---
-
-### 6\. 前端路由增强（可选）
-
-* component（组件路径）
-* redirect（重定向路径）
-* keep\_alive（是否缓存页面）
-
-\---
-
-## 三、推荐完整字段结构
-
-menu\_name  
-menu\_key  
-parent\_id  
-path  
-component  
-type  
-sort  
-icon  
-class\_name  
-url  
-is\_external  
-target  
-permission  
-status  
-hidden  
-redirect  
-keep\_alive
+* Markdown模式：存 Markdown 原文
+* 富文本模式：存 HTML
+* content\_type 用于渲染判断
 
 \---
 
-## 四、说明
+## 4\. Category 分类系统优化
 
-该设计支持：
+### 4.1 数据来源
 
-* 多级菜单（树形结构）
-* 动态路由加载
-* RBAC权限控制
-* 外链跳转
-* 前端UI定制
-* 页面缓存与重定向
+category\_list 字典表
+
+```json
+{
+  "id": 1,
+  "name": "虚拟机",
+  "children": \\\[
+    {
+      "id": 11,
+      "name": "KVM"
+    }
+  ]
+}
+```
+
+\---
+
+### 4.2 初始化分类
+
+系统启动自动初始化：
+
+#### 一级分类
+
+* 虚拟机
+* VPN
+* 域名
+* 服务器
+* 网络工具
+* 安全工具
+
+#### 二级分类示例
+
+* 虚拟机：KVM / VMware
+* VPN：商业VPN / 自建VPN
+* 域名：注册商 / DNS解析
+
+\---
+
+### 4.3 分类选择
+
+* Tree Select
+* 单选分类
+* 支持默认选中最近使用分类
+
+\---
+
+## 5\. URL 处理逻辑（重点）
+
+### 5.1 规则
+
+识别所有 URL：
+
+* http://
+* https://
+
+\---
+
+### 5.2 替换逻辑
+
+原始：
+https://example.com/page
+
+替换：
+/redirect?url=encoded\_url
+
+示例：
+/redirect?url=https%3A%2F%2Fexample.com%2Fpage
+
+\---
+
+### 5.3 Redirect 页面逻辑
+
+访问 /redirect：
+
+1. 展示目标链接
+2. 倒计时 3 秒
+3. 自动跳转
+
+\---
+
+### 5.4 安全建议
+
+* 白名单域名
+* 防 open redirect
+* 记录跳转日志
+
+\---
+
+## 6\. 发布流程
+
+1. 编辑内容（Rich / Markdown）
+2. 提交 content + type
+3. 后端扫描 URL
+4. 替换 redirect 链接
+5. 存储数据库
+6. 返回 post\_id
+
+\---
+
+## 7\. 可扩展优化
+
+* SEO meta 自动生成
+* XSS 过滤
+* autosave
+* 草稿系统
+* tag 系统
 
 
 
