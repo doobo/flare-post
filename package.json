@@ -1,0 +1,32 @@
+{
+  "name": "cloud-web",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npm run build:frontend && wrangler dev",
+    "dev:remote": "npm run build:frontend && wrangler dev --remote",
+    "dev:node": "concurrently \"tsx watch src/node-server.ts\" \"cd frontend && npm run dev\"",
+    "build:frontend": "cd frontend && npm run build",
+    "db:init": "wrangler d1 execute info_db --local --file=./schema.sql",
+    "deploy": "npm run build:frontend && wrangler deploy"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@hono/node-server": "^2.0.4",
+    "better-sqlite3": "^12.10.1",
+    "hono": "^4.12.25"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260613.1",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^25.9.3",
+    "concurrently": "^10.0.3",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.100.0"
+  }
+}

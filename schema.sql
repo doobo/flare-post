@@ -1,0 +1,17 @@
+CREATE TABLE IF NOT EXISTS posts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  content_md TEXT NOT NULL,
+  category TEXT NOT NULL,
+  tags TEXT,
+  status TEXT NOT NULL DEFAULT 'published',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS links (
+  id TEXT PRIMARY KEY,
+  post_id INTEGER,
+  target_url TEXT NOT NULL,
+  clicks INTEGER DEFAULT 0,
+  FOREIGN KEY (post_id) REFERENCES posts(id)
+);

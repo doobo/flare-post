@@ -1,0 +1,14 @@
+name = "info-platform"
+main = "src/index.ts"
+compatibility_date = "2026-06-14"
+
+assets = { directory = "./frontend/dist", binding = "ASSETS" }
+
+[[d1_databases]]
+binding = "DB"
+database_name = "info_db"
+database_id = "f1bbed58-a751-4054-9b6b-cc36f553574e"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "b7947f245ee94fd48eb42ef944a3e0e4"
