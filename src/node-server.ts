@@ -31,29 +31,44 @@ class LocalD1 {
         clicks INTEGER DEFAULT 0,
         FOREIGN KEY (post_id) REFERENCES posts(id)
       );
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        email TEXT,
+        role TEXT DEFAULT 'admin',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+      INSERT OR IGNORE INTO users (id, username, password_hash, email, role) 
+      VALUES (1, 'admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'admin@example.com', 'admin');
     `);
   }
   prepare(query: string) {
+    const execute = (params: any[]) => {
+      return {
+        all: async () => {
+          const stmt = this.db.prepare(query);
+          const results = stmt.all(...params);
+          return { results };
+        },
+        first: async () => {
+          const stmt = this.db.prepare(query);
+          const result = stmt.get(...params);
+          return result || null;
+        },
+        run: async () => {
+          const stmt = this.db.prepare(query);
+          const info = stmt.run(...params);
+          return { success: true, meta: { changes: info.changes } };
+        }
+      };
+    };
+
     return {
-      bind: (...params: any[]) => {
-        return {
-          all: async () => {
-            const stmt = this.db.prepare(query);
-            const results = stmt.all(...params);
-            return { results };
-          },
-          first: async () => {
-            const stmt = this.db.prepare(query);
-            const result = stmt.get(...params);
-            return result || null;
-          },
-          run: async () => {
-            const stmt = this.db.prepare(query);
-            const info = stmt.run(...params);
-            return { success: true, meta: { changes: info.changes } };
-          }
-        };
-      }
+      bind: (...params: any[]) => execute(params),
+      all: () => execute([]).all(),
+      first: () => execute([]).first(),
+      run: () => execute([]).run()
     };
   }
 }
@@ -74,7 +89,7 @@ const serverApp = new Hono();
 
 // Middleware to inject local bindings BEFORE the routes
 serverApp.use('*', async (c, next) => {
-  c.env = { ...c.env, ...localBindings };
+  c.env = { ...(c.env as any), ...localBindings };
   
   Object.defineProperty(c, 'executionCtx', {
     value: {
