@@ -180,7 +180,16 @@
               已自动保存草稿
             </div>
 
-            <div class="pt-4 border-t border-slate-100 flex justify-end">
+            <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <!-- Autosave Toggle Switch (Visible only on create new post) -->
+              <div v-if="!isEditing" class="flex items-center space-x-2 select-none">
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" v-model="enableAutosave" class="sr-only peer" />
+                  <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                  <span class="ml-3 text-sm font-medium text-slate-600">自动保存草稿 (30秒间隔)</span>
+                </label>
+              </div>
+              <div v-else class="text-xs text-slate-400 italic">Editing mode: autosave disabled</div>
               <button type="submit" :disabled="submitting" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-xl shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 <svg v-if="submitting" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -200,9 +209,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import MarkdownIt from 'markdown-it'
+import { showToast } from '@/utils/toast'
 
 const router = useRouter()
 const route = useRoute()
@@ -224,6 +234,7 @@ const form = ref({
 const submitting = ref(false)
 const showDraftPrompt = ref(false)
 const showAutosaveTip = ref(false)
+const enableAutosave = ref(localStorage.getItem('admin_enable_autosave') !== 'false')
 
 const showCategoryDropdown = ref(false)
 const categoriesTree = ref<any[]>([])
@@ -327,12 +338,12 @@ const fetchPost = async (id: string) => {
         }, 0)
       }
     } else {
-      alert('Post not found.')
+      showToast('Post not found.', 'error')
       router.push('/admin/list')
     }
   } catch (e) {
     console.error(e)
-    alert('Error loading post data.')
+    showToast('Error loading post data.', 'error')
   }
 }
 
@@ -420,20 +431,45 @@ const execLinkCommand = () => {
 
 // Autosave & draft system
 let autosaveTimer: any = null
+let lastSavedContent = ''
+
 const startAutosave = () => {
+  if (autosaveTimer) clearInterval(autosaveTimer)
+  if (!enableAutosave.value) return
+
+  lastSavedContent = JSON.stringify(form.value)
   autosaveTimer = setInterval(() => {
-    if (!isEditing.value && (form.value.title || form.value.content_md || form.value.content_html)) {
+    if (!isEditing.value && enableAutosave.value && (form.value.title || form.value.content_md || form.value.content_html)) {
       if (form.value.content_type === 'richtext' && richEditorRef.value) {
         form.value.content_html = richEditorRef.value.innerHTML
       }
-      localStorage.setItem('admin_draft_post', JSON.stringify(form.value))
-      showAutosaveTip.value = true
-      setTimeout(() => {
-        showAutosaveTip.value = false
-      }, 2000)
+      
+      const currentContent = JSON.stringify(form.value)
+      if (currentContent !== lastSavedContent) {
+        localStorage.setItem('admin_draft_post', currentContent)
+        lastSavedContent = currentContent
+        showAutosaveTip.value = true
+        setTimeout(() => {
+          showAutosaveTip.value = false
+        }, 2000)
+      }
     }
-  }, 5000)
+  }, 30000) // 30 seconds interval
 }
+
+watch(enableAutosave, (newVal) => {
+  localStorage.setItem('admin_enable_autosave', String(newVal))
+  if (newVal) {
+    if (!isEditing.value) {
+      startAutosave()
+    }
+  } else {
+    if (autosaveTimer) {
+      clearInterval(autosaveTimer)
+      autosaveTimer = null
+    }
+  }
+})
 
 const restoreDraft = () => {
   const draft = localStorage.getItem('admin_draft_post')
@@ -456,7 +492,8 @@ const restoreDraft = () => {
           }
         }, 0)
       }
-      alert('草稿已成功恢复！')
+      lastSavedContent = JSON.stringify(form.value)
+      showToast('草稿已成功恢复！', 'success')
     } catch (e) {
       console.error(e)
     }
@@ -544,10 +581,10 @@ const submitPost = async () => {
       }
 
       if (isEditing.value) {
-        alert('Post updated successfully!')
+        showToast('Post updated successfully!', 'success')
         router.push('/admin/list')
       } else {
-        alert('Post published successfully!')
+        showToast('Post published successfully!', 'success')
         form.value = { 
           title: '', 
           category: '', 
@@ -561,16 +598,16 @@ const submitPost = async () => {
     } else {
       const data = await res.json()
       if (res.status === 401) {
-        alert('Session expired. Please log in again.')
+        showToast('Session expired. Please log in again.', 'error')
         localStorage.removeItem('adminToken')
         router.push('/admin/login')
       } else {
-        alert('Failed to save post: ' + (data.error || 'Unknown error'))
+        showToast('Failed to save post: ' + (data.error || 'Unknown error'), 'error')
       }
     }
   } catch (e) {
     console.error(e)
-    alert('Error saving post.')
+    showToast('Error saving post.', 'error')
   } finally {
     submitting.value = false
   }

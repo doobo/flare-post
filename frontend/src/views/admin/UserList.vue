@@ -135,6 +135,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { showToast } from '@/utils/toast'
 
 const router = useRouter()
 const users = ref<any[]>([])
@@ -239,11 +240,11 @@ const saveUser = async () => {
       handleAuthError()
     } else {
       const data = await res.json()
-      alert('Error: ' + (data.error || 'Failed to save user'))
+      showToast('Error: ' + (data.error || 'Failed to save user'), 'error')
     }
   } catch (e) {
     console.error(e)
-    alert('Network error')
+    showToast('Network error', 'error')
   } finally {
     saving.value = false
   }
@@ -265,16 +266,16 @@ const deleteUser = async (id: number) => {
       handleAuthError()
     } else {
       const data = await res.json()
-      alert('Failed to delete user: ' + (data.error || 'Unknown error'))
+      showToast('Failed to delete user: ' + (data.error || 'Unknown error'), 'error')
     }
   } catch (e) {
     console.error(e)
-    alert('Error connecting to server.')
+    showToast('Error connecting to server.', 'error')
   }
 }
 
 const handleAuthError = () => {
-  alert('Session expired. Please log in again.')
+  showToast('Session expired. Please log in again.', 'error')
   localStorage.removeItem('adminToken')
   router.push('/admin/login')
 }

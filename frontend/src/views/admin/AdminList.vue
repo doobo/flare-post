@@ -54,6 +54,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { showToast } from '@/utils/toast'
 
 const router = useRouter()
 const posts = ref<any[]>([])
@@ -93,15 +94,15 @@ const deletePost = async (id: number) => {
     if (res.ok) {
       posts.value = posts.value.filter(p => p.id !== id)
     } else if (res.status === 401) {
-      alert('Session expired. Please log in again.')
+      showToast('Session expired. Please log in again.', 'error')
       localStorage.removeItem('adminToken')
       router.push('/admin/login')
     } else {
-      alert('Failed to delete post.')
+      showToast('Failed to delete post.', 'error')
     }
   } catch (e) {
     console.error(e)
-    alert('Error connecting to server.')
+    showToast('Error connecting to server.', 'error')
   }
 }
 
