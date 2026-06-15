@@ -68,6 +68,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { encryptPassword } from '@/utils/crypto'
 
 const router = useRouter()
 const username = ref('')
@@ -80,41 +81,14 @@ const handleLogin = async () => {
   error.value = ''
   
   try {
-    // 1. Fetch public key from backend
-    const keyRes = await fetch('/api/auth/public-key')
-    if (!keyRes.ok) {
-      throw new Error('Failed to retrieve secure login key')
-    }
-    const jwk = await keyRes.json()
+    const { encrypted: encryptedPassword } = await encryptPassword(password.value)
 
-    // 2. Import public key
-    const publicKey = await window.crypto.subtle.importKey(
-      "jwk",
-      jwk,
-      { name: "RSA-OAEP", hash: "SHA-256" },
-      true,
-      ["encrypt"]
-    )
-
-    // 3. Encrypt the password
-    const encoder = new TextEncoder()
-    const passwordData = encoder.encode(password.value)
-    const encryptedBuffer = await window.crypto.subtle.encrypt(
-      { name: "RSA-OAEP" },
-      publicKey,
-      passwordData
-    )
-
-    // 4. Base64 encode the encrypted password
-    const encryptedBase64 = btoa(String.fromCharCode(...new Uint8Array(encryptedBuffer)))
-
-    // 5. Submit encrypted credentials
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ username: username.value, password: encryptedBase64 })
+      body: JSON.stringify({ username: username.value, password: encryptedPassword })
     })
     
     const data = await res.json()

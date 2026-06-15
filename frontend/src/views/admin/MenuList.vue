@@ -366,6 +366,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast } from '@/utils/toast'
+import { showConfirm } from '@/utils/confirm'
 
 const router = useRouter()
 
@@ -603,7 +604,7 @@ const saveItem = async () => {
 }
 
 const deleteItem = async (id: number) => {
-  if (!confirm('Are you sure you want to delete this menu item? Doing so will also delete all submenus recursively.')) return
+  if (!await showConfirm('Are you sure you want to delete this menu item? Doing so will also delete all submenus recursively.')) return
 
   const token = localStorage.getItem('adminToken')
   try {

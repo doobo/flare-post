@@ -119,10 +119,20 @@ async function decryptPassword(passwordBase64: string, env: Bindings): Promise<s
   return decoder.decode(decryptedBuffer);
 }
 
+function arrayBufferToPem(buffer: ArrayBuffer): string {
+  const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+  const lines = base64.match(/.{1,64}/g) || [];
+  return `-----BEGIN PUBLIC KEY-----\n${lines.join('\n')}\n-----END PUBLIC KEY-----`;
+}
+
 app.get("/api/auth/public-key", async (c) => {
   const keyPair = await getRSAKeyPair(c.env);
-  const publicKeyJwk = await crypto.subtle.exportKey("jwk", keyPair.publicKey);
-  return c.json(publicKeyJwk);
+  const [publicKeyJwk, spkiBuffer] = await Promise.all([
+    crypto.subtle.exportKey("jwk", keyPair.publicKey),
+    crypto.subtle.exportKey("spki", keyPair.publicKey)
+  ]);
+  const pem = arrayBufferToPem(spkiBuffer);
+  return c.json({ jwk: publicKeyJwk, pem });
 });
 
 app.post("/api/auth/login", async (c) => {

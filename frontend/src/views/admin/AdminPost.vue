@@ -213,6 +213,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import MarkdownIt from 'markdown-it'
 import { showToast } from '@/utils/toast'
+import { showConfirm } from '@/utils/confirm'
 
 const router = useRouter()
 const route = useRoute()
@@ -386,7 +387,7 @@ const htmlToMarkdown = (html: string): string => {
   return mdText.trim().replace(/\n{3,}/g, '\n\n')
 }
 
-const switchEditorMode = (newMode: 'markdown' | 'richtext') => {
+const switchEditorMode = async (newMode: 'markdown' | 'richtext') => {
   if (form.value.content_type === newMode) return
 
   if (newMode === 'richtext') {
@@ -402,7 +403,7 @@ const switchEditorMode = (newMode: 'markdown' | 'richtext') => {
     }, 0)
   } else {
     // HTML -> Markdown
-    if (confirm('切换到 Markdown 将进行格式转换。一些复杂的 Rich Text 排版可能需要手动调整，是否继续？')) {
+    if (await showConfirm('切换到 Markdown 将进行格式转换。一些复杂的 Rich Text 排版可能需要手动调整，是否继续？')) {
       const htmlContent = richEditorRef.value ? richEditorRef.value.innerHTML : (form.value.content_html || '')
       form.value.content_md = htmlToMarkdown(htmlContent)
       form.value.content_type = 'markdown'

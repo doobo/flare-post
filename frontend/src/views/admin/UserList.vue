@@ -136,6 +136,8 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast } from '@/utils/toast'
+import { encryptPassword } from '@/utils/crypto'
+import { showConfirm } from '@/utils/confirm'
 
 const router = useRouter()
 const users = ref<any[]>([])
@@ -187,33 +189,8 @@ const saveUser = async () => {
   try {
     let encryptedPassword = undefined
     if (form.value.password) {
-      // 1. Fetch public key from backend
-      const keyRes = await fetch('/api/auth/public-key')
-      if (!keyRes.ok) {
-        throw new Error('Failed to retrieve secure encryption key')
-      }
-      const jwk = await keyRes.json()
-
-      // 2. Import public key
-      const publicKey = await window.crypto.subtle.importKey(
-        "jwk",
-        jwk,
-        { name: "RSA-OAEP", hash: "SHA-256" },
-        true,
-        ["encrypt"]
-      )
-
-      // 3. Encrypt the password
-      const encoder = new TextEncoder()
-      const passwordData = encoder.encode(form.value.password)
-      const encryptedBuffer = await window.crypto.subtle.encrypt(
-        { name: "RSA-OAEP" },
-        publicKey,
-        passwordData
-      )
-
-      // 4. Base64 encode the encrypted password
-      encryptedPassword = btoa(String.fromCharCode(...new Uint8Array(encryptedBuffer)))
+      const result = await encryptPassword(form.value.password)
+      encryptedPassword = result.encrypted
     }
 
     const url = isEditing.value ? `/api/users/${form.value.id}` : '/api/users'
@@ -251,7 +228,7 @@ const saveUser = async () => {
 }
 
 const deleteUser = async (id: number) => {
-  if (!confirm('Are you sure you want to delete this user?')) return
+  if (!await showConfirm('Are you sure you want to delete this user?')) return
 
   const token = localStorage.getItem('adminToken')
   try {

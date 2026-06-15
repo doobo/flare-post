@@ -55,6 +55,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast } from '@/utils/toast'
+import { showConfirm } from '@/utils/confirm'
 
 const router = useRouter()
 const posts = ref<any[]>([])
@@ -75,7 +76,7 @@ const fetchPosts = async () => {
 }
 
 const deletePost = async (id: number) => {
-  if (!confirm('Are you sure you want to delete this offer?')) return
+  if (!await showConfirm('Are you sure you want to delete this offer?')) return
 
   const token = localStorage.getItem('adminToken')
   if (!token) {

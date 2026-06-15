@@ -1,6 +1,7 @@
 <template>
   <router-view></router-view>
   
+  <ConfirmDialog />
   <!-- Global Toasts Container -->
   <Teleport to="body">
     <div class="toast-container">
@@ -46,6 +47,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { onToast, type ToastType } from './utils/toast'
+import ConfirmDialog from './components/ConfirmDialog.vue'
 
 interface Toast {
   id: number
