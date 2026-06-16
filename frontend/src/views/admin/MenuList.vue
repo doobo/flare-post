@@ -1,13 +1,13 @@
 <template>
-  <div class="p-6">
+  <div class="p-6 overflow-y-auto h-full flex-1">
     <div class="w-full">
-      <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
-        <div>
-          <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Menu Configuration</h1>
-          <p class="text-sm text-slate-500 mt-1">Manage system menus, routing components, visibility, and RBAC permissions.</p>
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-4 mb-5">
+        <div class="flex items-baseline space-x-2">
+          <h1 class="text-xl font-bold text-slate-800">Menu Configuration</h1>
+          <span class="text-xs text-slate-400 hidden md:inline">— Manage system menus and permissions.</span>
         </div>
-        <button @click="openAddModal" class="inline-flex items-center self-start px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
-          <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <button @click="openAddModal" class="inline-flex items-center self-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+          <svg class="mr-1 h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
           Add Menu Item

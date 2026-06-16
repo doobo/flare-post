@@ -38,9 +38,43 @@
           <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight mb-2">{{ post.title }}</h1>
         </div>
         
+        <!-- Offer Metadata Callout -->
+        <div v-if="hasMetadata" class="px-8 pt-8 sm:px-10 flex flex-wrap gap-4">
+          <div v-if="metadata.discount_strength" class="flex-1 min-w-[200px] bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-center space-x-3">
+            <span class="text-2xl">💰</span>
+            <div>
+              <div class="text-[10px] uppercase font-bold text-emerald-600 tracking-wider">Discount Strength / Price</div>
+              <div class="text-base font-bold text-slate-800">{{ metadata.discount_strength }}</div>
+            </div>
+          </div>
+          <div v-if="metadata.promo_code && metadata.show_promo_code !== false" class="flex-1 min-w-[200px] bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <span class="text-2xl">🏷️</span>
+              <div>
+                <div class="text-[10px] uppercase font-bold text-indigo-600 tracking-wider">Promo Code</div>
+                <div class="text-base font-mono font-bold text-indigo-800">{{ metadata.promo_code }}</div>
+              </div>
+            </div>
+            <button @click="copyPromoCode" class="px-2.5 py-1.5 text-xs font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 active:scale-95 transition-all cursor-pointer">
+              Copy
+            </button>
+          </div>
+          <div v-if="metadata.start_date || metadata.end_date" class="flex-1 min-w-[200px] bg-amber-50 border border-amber-100 rounded-xl p-4 flex items-center space-x-3">
+            <span class="text-2xl">📅</span>
+            <div>
+              <div class="text-[10px] uppercase font-bold text-amber-600 tracking-wider">Validity Period</div>
+              <div class="text-xs text-slate-700">
+                <div v-if="metadata.start_date">Start: {{ formatDate(metadata.start_date) }}</div>
+                <div v-if="metadata.end_date">End: {{ formatDate(metadata.end_date) }}</div>
+                <div v-else class="font-medium text-amber-800">Permanent / Always valid</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Content -->
         <div class="p-8 sm:p-10">
-          <div class="prose prose-indigo prose-lg max-w-none prose-a:text-indigo-600 hover:prose-a:text-indigo-500 prose-img:rounded-xl prose-img:shadow-md" v-html="renderContent(post)"></div>
+          <div class="prose prose-indigo prose-lg max-w-none prose-a:text-indigo-600 hover:prose-a:text-indigo-500 prose-img:rounded-xl prose-img:shadow-md" v-html="renderContent()"></div>
         </div>
       </div>
     </div>
@@ -48,9 +82,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import MarkdownIt from 'markdown-it'
+import { parseFrontmatter, type ContentMetadata } from '@/utils/frontmatter'
+import { showToast } from '@/utils/toast'
 
 const route = useRoute()
 const md = new MarkdownIt({ linkify: true, breaks: true })
@@ -97,11 +133,38 @@ const fetchPost = async () => {
   }
 }
 
-const renderContent = (post: Post) => {
-  if (post.content_type === 'richtext') {
-    return post.content_md
+const metadata = computed<ContentMetadata>(() => {
+  if (!post.value) return {}
+  return parseFrontmatter(post.value.content_md).metadata
+})
+
+const hasMetadata = computed(() => {
+  const meta = metadata.value
+  return !!(meta.promo_code || meta.start_date || meta.end_date || meta.discount_strength)
+})
+
+const copyPromoCode = () => {
+  if (metadata.value.promo_code) {
+    navigator.clipboard.writeText(metadata.value.promo_code)
+    showToast('Promo code copied!', 'success')
   }
-  return md.render(post.content_md)
+}
+
+const formatDate = (val: string) => {
+  try {
+    return new Date(val).toLocaleString()
+  } catch (e) {
+    return val
+  }
+}
+
+const renderContent = () => {
+  if (!post.value) return ''
+  const { body } = parseFrontmatter(post.value.content_md)
+  if (post.value.content_type === 'richtext') {
+    return body
+  }
+  return md.render(body)
 }
 
 onMounted(() => {

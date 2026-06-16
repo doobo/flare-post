@@ -227,7 +227,7 @@
       </div>
 
       <!-- Scrollable Main Content -->
-      <main class="flex-1 overflow-y-auto bg-slate-50">
+      <main class="flex-1 overflow-hidden bg-slate-50 flex flex-col">
         <router-view></router-view>
       </main>
     </div>

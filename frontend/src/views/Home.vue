@@ -84,8 +84,15 @@ interface Post {
   created_at: string
 }
 
+import { parseFrontmatter } from '@/utils/frontmatter'
+
 const getPreviewText = (post: Post): string => {
-  let text = post.content_md || ''
+  let rawText = post.content_md || ''
+  
+  // Parse frontmatter and get clean body
+  const { body } = parseFrontmatter(rawText)
+  let text = body
+  
   if (post.content_type === 'richtext') {
     // Strip HTML tags
     text = text.replace(/<\/?[^>]+(>|$)/g, "")

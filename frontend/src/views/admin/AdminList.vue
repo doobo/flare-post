@@ -1,9 +1,9 @@
 <template>
-  <div class="p-6">
+  <div class="p-6 overflow-y-auto h-full flex-1">
     <div class="w-full">
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Manage Offers</h1>
-        <p class="text-sm text-slate-500 mt-1">View, edit, or remove published offers.</p>
+      <div class="mb-5 flex items-baseline space-x-2">
+        <h1 class="text-xl font-bold text-slate-800">Manage Offers</h1>
+        <span class="text-xs text-slate-400 hidden sm:inline">— View, edit, or remove published offers.</span>
       </div>
 
       <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
