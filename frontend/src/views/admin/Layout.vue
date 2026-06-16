@@ -3,8 +3,8 @@
     <!-- Sidebar Menu -->
     <div :class="isCollapsed ? 'w-20' : 'w-64'" class="bg-slate-900 text-white flex flex-col shadow-xl transition-all duration-300 ease-in-out">
       <div :class="isCollapsed ? 'px-2 py-4 flex-col space-y-4' : 'p-6 justify-between'" class="flex items-center border-b border-slate-800">
-        <h1 v-show="!isCollapsed" class="text-xl font-bold tracking-wider text-indigo-400 transition-all duration-300">Admin Panel</h1>
-        <h1 v-show="isCollapsed" class="text-lg font-bold tracking-wider text-indigo-400 transition-all duration-300">AP</h1>
+        <h1 v-show="!isCollapsed" class="text-xl font-bold tracking-wider text-indigo-400 transition-all duration-300">{{ adminTitle }}</h1>
+        <h1 v-show="isCollapsed" class="text-lg font-bold tracking-wider text-indigo-400 transition-all duration-300">{{ collapsedTitle }}</h1>
         <button @click="toggleSidebar" :class="isCollapsed ? 'w-10 h-10' : 'p-1.5'" class="rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all duration-300 flex items-center justify-center cursor-pointer">
           <svg class="w-5 h-5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="isCollapsed ? 'M9 5l7 7-7 7' : 'M15 19l-7-7 7-7'" />
@@ -175,18 +175,71 @@
       </div>
     </div>
 
-    <!-- Main Content Area -->
-    <div class="flex-1 overflow-auto h-screen">
-      <router-view></router-view>
+    <!-- Main Content Area Wrapper -->
+    <div class="flex-1 flex flex-col h-screen overflow-hidden">
+      <!-- Top Navigation Bar -->
+      <header class="bg-white border-b border-slate-100 h-16 flex items-center justify-between px-6 shrink-0 shadow-sm z-10">
+        <!-- Left: Page Title / Breadcrumb -->
+        <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-2 text-sm text-slate-500">
+            <span class="font-bold text-slate-800 text-base">{{ currentMenuName }}</span>
+          </div>
+        </div>
+
+        <!-- Right: User Profile & Quick Logout -->
+        <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-3 border-r border-slate-100 pr-4">
+            <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">
+              A
+            </div>
+            <div class="text-left hidden sm:block">
+              <div class="text-xs font-semibold text-slate-700">Administrator</div>
+              <div class="text-[10px] text-slate-400">admin@example.com</div>
+            </div>
+          </div>
+          <button @click="logout" class="p-2 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer" title="Logout">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Multi-route Tab History Bar -->
+      <div v-if="tabs.length > 0" class="bg-white border-b border-slate-200 px-6 py-2 flex items-center overflow-x-auto gap-2 shrink-0 no-scrollbar">
+        <div 
+          v-for="tab in tabs" 
+          :key="tab.path"
+          :class="activeTabPath === tab.path ? 'bg-indigo-50 border-indigo-200 text-indigo-700 font-medium' : 'bg-slate-50 border-slate-100 text-slate-600 hover:bg-slate-100'"
+          class="flex items-center space-x-2 px-3 py-1.5 rounded-lg border text-xs cursor-pointer transition-all duration-200 select-none group"
+          @click="router.push(tab.path)"
+        >
+          <span>{{ tab.name }}</span>
+          <button 
+            @click.stop="closeTab(tab.path)"
+            class="text-slate-400 hover:text-red-500 rounded p-0.5 transition-colors"
+          >
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Scrollable Main Content -->
+      <main class="flex-1 overflow-y-auto bg-slate-50">
+        <router-view></router-view>
+      </main>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-import { ref, onMounted, onUnmounted, h } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { ref, onMounted, onUnmounted, h, computed, watch } from 'vue'
 
 const router = useRouter()
+const route = useRoute()
 
 interface SideMenu {
   id: number
@@ -206,6 +259,73 @@ const sideMenus = ref<SideMenu[]>([])
 const openMenus = ref<Record<number, boolean>>({})
 const isCollapsed = ref(localStorage.getItem('sidebar-collapsed') === 'true')
 
+const adminTitle = ref('Admin Panel')
+const collapsedTitle = computed(() => {
+  if (!adminTitle.value) return 'AP'
+  const words = adminTitle.value.trim().split(/\s+/)
+  if (words.length === 1) {
+    return words[0].substring(0, 2).toUpperCase()
+  }
+  return words.map(w => w[0]).join('').substring(0, 3).toUpperCase()
+})
+
+const activeTabPath = ref('/admin')
+interface TabItem {
+  name: string
+  path: string
+}
+const tabs = ref<TabItem[]>([])
+
+const addTab = (toRoute: any) => {
+  const path = toRoute.path
+  if (!path.startsWith('/admin') || path === '/admin/login') return
+  
+  // Find menu name matching the route path
+  let name = ''
+  if (path === '/admin') name = 'Publish'
+  else if (path === '/admin/list') name = 'Offers'
+  else if (path === '/admin/users') name = 'Users'
+  else if (path === '/admin/dictionaries') name = 'Dictionaries'
+  else if (path === '/admin/menus') name = 'Menus'
+  else name = toRoute.meta?.title || 'Admin Page'
+
+  const exists = tabs.value.some(t => t.path === path)
+  if (!exists) {
+    tabs.value.push({ name, path })
+  }
+  activeTabPath.value = path
+}
+
+const closeTab = (path: string) => {
+  const index = tabs.value.findIndex(t => t.path === path)
+  if (index === -1) return
+  
+  tabs.value.splice(index, 1)
+  
+  if (activeTabPath.value === path) {
+    if (tabs.value.length > 0) {
+      const newActiveIndex = Math.max(0, index - 1)
+      router.push(tabs.value[newActiveIndex].path)
+    } else {
+      router.push('/admin')
+    }
+  }
+}
+
+watch(() => route.path, () => {
+  addTab(route)
+}, { immediate: true })
+
+const currentMenuName = computed(() => {
+  const path = route.path
+  if (path === '/admin') return 'Publish Offer'
+  if (path === '/admin/list') return 'Manage Offers'
+  if (path === '/admin/users') return 'Manage Users'
+  if (path === '/admin/dictionaries') return 'Manage Dictionaries'
+  if (path === '/admin/menus') return 'Manage Menus'
+  return 'Admin Dashboard'
+})
+
 const toggleMenu = (id: number) => {
   openMenus.value[id] = !openMenus.value[id]
 }
@@ -223,6 +343,25 @@ const buildMenuTree = (menus: any[], parentId: number): any[] => {
       children: buildMenuTree(menus, m.id)
     }))
     .sort((a: any, b: any) => a.sort - b.sort)
+}
+
+const fetchAdminTitle = async () => {
+  const token = localStorage.getItem('adminToken')
+  if (!token) return
+  try {
+    const res = await fetch('/api/dictionaries', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    if (res.ok) {
+      const data = await res.json()
+      const titleItem = data.find((item: any) => item.code === 'admin_title')
+      if (titleItem && titleItem.value) {
+        adminTitle.value = titleItem.value
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load admin title:', e)
+  }
 }
 
 const fetchSideMenus = async () => {
@@ -312,6 +451,7 @@ onMounted(() => {
   if (!token) {
     router.push('/admin/login')
   } else {
+    fetchAdminTitle()
     fetchSideMenus()
   }
   window.addEventListener('menus-updated', fetchSideMenus)

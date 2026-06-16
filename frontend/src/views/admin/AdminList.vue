@@ -1,6 +1,6 @@
 <template>
-  <div class="p-6 lg:p-10">
-    <div class="max-w-5xl mx-auto">
+  <div class="p-6">
+    <div class="w-full">
       <div class="mb-8">
         <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Manage Offers</h1>
         <p class="text-sm text-slate-500 mt-1">View, edit, or remove published offers.</p>

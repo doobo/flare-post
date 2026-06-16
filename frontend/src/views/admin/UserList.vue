@@ -1,6 +1,6 @@
 <template>
-  <div class="p-6 lg:p-10">
-    <div class="max-w-6xl mx-auto">
+  <div class="p-6">
+    <div class="w-full">
       <div class="flex justify-between items-center mb-8">
         <div>
           <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Manage Users</h1>
