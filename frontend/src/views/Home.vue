@@ -1,34 +1,17 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <NavBar
+      :categoriesTree="categoriesTree"
+      :activeParent="activeParent"
+      :searchQuery="searchQuery"
+      @update:searchQuery="searchQuery = $event"
+      @selectParentCategory="onSelectParent"
+    />
 
     <!-- Main Content -->
-    <div class="max-w-5xl mx-auto py-6 px-6 sm:px-8">
-      <!-- Toolbar: Search | Category | Count | Sort -->
+    <div class="max-w-5xl mx-auto pt-20 px-6 sm:px-8">
+      <!-- Toolbar: Category dropdown | Count | Sort -->
       <div class="flex items-center gap-2 mb-6 bg-white border border-slate-100 rounded-xl shadow-sm px-3 py-2">
-        <!-- Search icon (inline expand) -->
-        <div class="relative flex items-center">
-          <button v-if="!searchExpanded" @click="focusSearch" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-indigo-600 transition-colors">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </button>
-          <div v-else class="flex items-center gap-1">
-            <svg class="w-4 h-4 text-slate-400 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              ref="searchInput"
-              v-model="searchQuery"
-              type="text"
-              placeholder="Search..."
-              @blur="onSearchBlur"
-              class="w-40 sm:w-56 text-sm border-0 outline-none focus:ring-0 p-1 text-slate-700 placeholder:text-slate-400"
-            />
-          </div>
-        </div>
-
-        <span class="text-slate-200">|</span>
-
         <!-- Category tree dropdown -->
         <div class="relative category-dropdown">
           <button @click="showCategoryDropdown = !showCategoryDropdown" class="flex items-center gap-1 text-sm text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">
@@ -157,7 +140,7 @@
           </div>
           <h3 class="text-xl font-medium text-slate-900 mb-1">No offers found</h3>
           <p class="text-slate-500">Try different keywords or browse all categories.</p>
-          <button @click="searchQuery = ''; selectedCategory = ''; fetchPosts()" class="mt-4 text-indigo-600 text-sm font-medium hover:text-indigo-700 transition-colors">
+          <button @click="searchQuery = ''; selectedCategory = ''; activeParent = ''; selectedCategoryLabel = 'All Categories'; fetchPosts()" class="mt-4 text-indigo-600 text-sm font-medium hover:text-indigo-700 transition-colors">
             Clear all filters
           </button>
         </div>
@@ -173,11 +156,62 @@
         <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600 inline-block"></div>
       </div>
     </div>
+
+    <!-- Floating category button (bottom right) -->
+    <div class="fixed bottom-6 right-6 z-30 category-fab">
+      <button @click="showFabMenu = !showFabMenu" class="w-12 h-12 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-all flex items-center justify-center">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      <!-- Floating category panel -->
+      <Transition name="scale">
+        <div v-if="showFabMenu" class="absolute bottom-16 right-0 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-80 overflow-y-auto p-3">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Categories</span>
+            <button @click="showFabMenu = false" class="p-0.5 rounded hover:bg-slate-100 text-slate-400">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <button
+            @click="selectCategoryFab('')"
+            :class="selectedCategory === '' && activeParent === '' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-600 hover:bg-slate-50'"
+            class="w-full text-left px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+          >
+            All Categories
+          </button>
+          <div class="border-t border-slate-100 my-1.5"></div>
+          <div v-for="parent in categoriesTree" :key="parent.id" class="mb-1">
+            <div class="px-3 py-0.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ parent.name }}</div>
+            <button
+              v-for="child in parent.children" :key="child.id"
+              @click="selectCategoryFab(child.label)"
+              :class="selectedCategory === child.label ? 'text-indigo-600 bg-indigo-50' : 'text-slate-600 hover:bg-slate-50'"
+              class="w-full text-left px-3 py-1.5 pl-6 rounded-lg text-sm transition-colors"
+            >
+              {{ child.name }}
+            </button>
+            <button
+              v-if="!parent.children || parent.children.length === 0"
+              @click="selectCategoryFab(parent.label)"
+              :class="selectedCategory === parent.label ? 'text-indigo-600 bg-indigo-50' : 'text-slate-600 hover:bg-slate-50'"
+              class="w-full text-left px-3 py-1.5 pl-6 rounded-lg text-sm transition-colors"
+            >
+              {{ parent.name }}
+            </button>
+          </div>
+        </div>
+      </Transition>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
+import NavBar from '@/components/NavBar.vue'
 
 interface Post {
   id: number
@@ -190,18 +224,25 @@ interface Post {
   remainingDays?: number
 }
 
+interface CategoryNode {
+  id: number
+  name: string
+  label: string
+  children: CategoryNode[]
+}
+
 import { parseFrontmatter } from '@/utils/frontmatter'
 
 const posts = ref<Post[]>([])
 const loading = ref(false)
 const error = ref(false)
 const searchQuery = ref('')
-const searchExpanded = ref(false)
-const searchInput = ref<HTMLInputElement | null>(null)
 const selectedCategory = ref('')
 const selectedCategoryLabel = ref('All Categories')
 const showCategoryDropdown = ref(false)
-const categoriesTree = ref<{ id: number; name: string; label: string; children: { id: number; name: string; label: string }[] }[]>([])
+const showFabMenu = ref(false)
+const activeParent = ref('')
+const categoriesTree = ref<CategoryNode[]>([])
 const sortBy = ref('latest')
 const page = ref(1)
 const totalCount = ref(0)
@@ -242,17 +283,33 @@ const calcRemainingDays = (contentMd: string): number | undefined => {
 let fetchedAllPosts: Post[] = []
 const allResultsCount = ref(0)
 
+const filterPostsClientSide = () => {
+  let filtered = [...fetchedAllPosts]
+
+  if (activeParent.value) {
+    filtered = filtered.filter(p => p.category === activeParent.value || p.category.startsWith(activeParent.value + ' / '))
+  }
+
+  if (selectedCategory.value) {
+    filtered = filtered.filter(p => p.category === selectedCategory.value)
+  }
+
+  allResultsCount.value = filtered.length
+
+  const limit = 20
+  posts.value = filtered.slice(0, limit)
+  totalCount.value = filtered.length
+  hasMore.value = filtered.length > limit
+}
+
 const fetchPosts = async () => {
   loading.value = true
   error.value = false
   page.value = 1
-  posts.value = []
-  fetchedAllPosts = []
 
   try {
     const params = new URLSearchParams()
     if (searchQuery.value) params.set('q', searchQuery.value)
-    if (selectedCategory.value) params.set('category', selectedCategory.value)
     params.set('sort', sortBy.value)
 
     const res = await fetch(`/api/posts?${params.toString()}`)
@@ -260,7 +317,6 @@ const fetchPosts = async () => {
 
     const data = await res.json()
     const rawPosts: Post[] = Array.isArray(data) ? data : data.posts || []
-    const total = Array.isArray(data) ? rawPosts.length : data.total || rawPosts.length
 
     fetchedAllPosts = rawPosts.map(p => ({
       ...p,
@@ -268,13 +324,7 @@ const fetchPosts = async () => {
       remainingDays: calcRemainingDays(p.content_md)
     }))
 
-    allResultsCount.value = total
-
-    // Client-side pagination: show first page
-    const limit = 20
-    posts.value = fetchedAllPosts.slice(0, limit)
-    totalCount.value = fetchedAllPosts.length
-    hasMore.value = fetchedAllPosts.length > limit
+    filterPostsClientSide()
 
   } catch (e) {
     console.error('Failed to fetch posts', e)
@@ -291,6 +341,29 @@ const loadMore = () => {
   hasMore.value = fetchedAllPosts.length > nextCount
 }
 
+const onSelectParent = (name: string) => {
+  activeParent.value = name
+  selectedCategory.value = ''
+  selectedCategoryLabel.value = 'All Categories'
+  filterPostsClientSide()
+}
+
+const selectCategory = (label: string) => {
+  selectedCategory.value = label
+  selectedCategoryLabel.value = label || 'All Categories'
+  activeParent.value = ''
+  showCategoryDropdown.value = false
+  filterPostsClientSide()
+}
+
+const selectCategoryFab = (label: string) => {
+  showFabMenu.value = false
+  selectedCategory.value = label
+  selectedCategoryLabel.value = label || 'All Categories'
+  activeParent.value = ''
+  filterPostsClientSide()
+}
+
 const highlightText = (text: string): string => {
   if (!searchQuery.value || !text) return text
   const q = searchQuery.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -298,34 +371,19 @@ const highlightText = (text: string): string => {
   return text.replace(regex, '<mark class="bg-yellow-200 text-slate-900 rounded px-0.5">$1</mark>')
 }
 
-const focusSearch = () => {
-  searchExpanded.value = true
-  setTimeout(() => searchInput.value?.focus(), 100)
-}
-
-const onSearchBlur = () => {
-  if (!searchQuery.value) {
-    searchExpanded.value = false
-  }
-}
-
-const selectCategory = (label: string) => {
-  selectedCategory.value = label
-  selectedCategoryLabel.value = label || 'All Categories'
-  showCategoryDropdown.value = false
-  fetchPosts()
-}
-
-const buildCategoryTree = (list: any[], parentId: number): any[] => {
+const buildCategoryTree = (list: any[], parentId: number, parentName = ''): any[] => {
   return list
     .filter((item: any) => item.parent_id === parentId)
     .sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0))
-    .map((item: any) => ({
-      id: item.id,
-      name: item.name,
-      label: item.name,
-      children: buildCategoryTree(list, item.id)
-    }))
+    .map((item: any) => {
+      const label = parentName ? `${parentName} / ${item.name}` : item.name
+      return {
+        id: item.id,
+        name: item.name,
+        label,
+        children: buildCategoryTree(list, item.id, label)
+      }
+    })
 }
 
 const fetchCategories = async () => {
@@ -355,6 +413,9 @@ const closeDropdown = (e: MouseEvent) => {
   if (!target.closest('.category-dropdown')) {
     showCategoryDropdown.value = false
   }
+  if (!target.closest('.category-fab')) {
+    showFabMenu.value = false
+  }
 }
 
 onMounted(() => {
@@ -378,5 +439,13 @@ onMounted(() => {
   color: #0f172a;
   border-radius: 2px;
   padding: 0 2px;
+}
+
+.scale-enter-active, .scale-leave-active {
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.scale-enter-from, .scale-leave-to {
+  transform: scale(0.9);
+  opacity: 0;
 }
 </style>
