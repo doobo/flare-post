@@ -54,7 +54,7 @@
     <!-- Main Workspace (Split / Content Area) -->
     <div class="flex-1 flex gap-6 overflow-hidden min-h-0">
       <!-- Left: Form Input Pane -->
-      <div :class="showPreview ? 'w-full lg:w-1/2' : 'w-full'" class="bg-white border border-slate-100 rounded-xl shadow-sm p-6 overflow-y-auto flex flex-col justify-between transition-all duration-300">
+      <div :class="showPreview ? 'w-full lg:w-1/2' : 'w-full'" class="bg-white border border-slate-100 rounded-xl shadow-sm p-6 overflow-y-auto flex flex-col justify-between transition-all duration-300 editor-scrollbar">
         <div class="space-y-6">
           <!-- STEP 1: Basic Info -->
           <div v-show="currentStep === 1" class="space-y-5">
@@ -220,10 +220,11 @@
 
             <!-- Date Presets -->
             <div class="flex flex-wrap items-center gap-1.5">
-              <span class="text-[10px] text-slate-400 font-semibold mr-1">快捷截止时间:</span>
+              <span class="text-[10px] text-slate-400 font-semibold mr-1">截止时间:</span>
               <button type="button" @click="setEndDatePreset(1)" class="px-2 py-0.5 rounded border border-slate-200 hover:border-indigo-500 text-slate-500 hover:text-indigo-600 text-[10px] transition-all cursor-pointer">1天后</button>
               <button type="button" @click="setEndDatePreset(3)" class="px-2 py-0.5 rounded border border-slate-200 hover:border-indigo-500 text-slate-500 hover:text-indigo-600 text-[10px] transition-all cursor-pointer">3天后</button>
               <button type="button" @click="setEndDatePreset(7)" class="px-2 py-0.5 rounded border border-slate-200 hover:border-indigo-500 text-slate-500 hover:text-indigo-600 text-[10px] transition-all cursor-pointer">7天后</button>
+              <button type="button" @click="setEndDatePreset(30)" class="px-2 py-0.5 rounded border border-slate-200 hover:border-indigo-500 text-slate-500 hover:text-indigo-600 text-[10px] transition-all cursor-pointer">1月后</button>
               <button type="button" @click="setEndDatePreset(0)" class="px-2 py-0.5 rounded border border-slate-200 hover:border-indigo-500 text-slate-500 hover:text-indigo-600 text-[10px] transition-all cursor-pointer">永久有效</button>
               
               <!-- Custom Days Input -->
@@ -232,7 +233,7 @@
                   type="number" 
                   v-model.number="customDays" 
                   min="1" 
-                  placeholder="自定" 
+                  placeholder=""
                   @blur="applyCustomDays"
                   @change="applyCustomDays"
                   class="w-8 border-0 bg-transparent text-[10px] font-semibold text-slate-600 text-center focus:ring-0 outline-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -399,10 +400,10 @@
         </div>
 
         <!-- Scrollable Preview Workspace -->
-        <div class="flex-1 overflow-y-auto p-6 bg-slate-950/40 flex flex-col items-center">
+        <div class="flex-1 overflow-y-auto p-6 bg-slate-950/40 flex flex-col items-center preview-scrollbar">
           <div 
             :style="{ width: previewWidth }"
-            class="transition-all duration-300 max-w-full bg-white text-slate-800 rounded-2xl shadow-2xl overflow-hidden border border-slate-200/50 flex flex-col"
+            class="transition-all duration-300 max-w-full bg-white text-slate-800 rounded-2xl shadow-2xl border border-slate-200/50"
           >
             <!-- Card Head -->
             <div class="p-6 border-b border-slate-100 bg-slate-50/50">
@@ -449,7 +450,7 @@
             </div>
 
             <!-- Rendered Body content -->
-            <div class="p-6 flex-1">
+            <div class="p-6">
               <div class="prose prose-indigo prose-sm max-w-none text-xs" v-html="previewHtml"></div>
             </div>
           </div>
@@ -1285,5 +1286,33 @@ const submitPost = async () => {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+.preview-scrollbar::-webkit-scrollbar,
+.editor-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.preview-scrollbar::-webkit-scrollbar-track,
+.editor-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.preview-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 3px;
+}
+.preview-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+.editor-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 3px;
+}
+.editor-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
+}
+.preview-scrollbar,
+.editor-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
 }
 </style>
