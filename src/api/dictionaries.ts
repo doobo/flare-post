@@ -5,8 +5,6 @@ import { encryptDictValue } from "../security/crypto";
 
 const dictionariesApi = new Hono<{ Bindings: Bindings }>();
 
-dictionariesApi.use("*", authMiddleware);
-
 dictionariesApi.get("/", async (c) => {
   const parentId = c.req.query("parentId");
   let query = "SELECT * FROM dictionaries ORDER BY sort_order ASC, created_at DESC";
@@ -28,7 +26,7 @@ dictionariesApi.get("/", async (c) => {
   return c.json(masked);
 });
 
-dictionariesApi.post("/", async (c) => {
+dictionariesApi.post("/", authMiddleware, async (c) => {
   const { name, code, value, type, parent_id, sort_order, description } = await c.req.json();
   if (!name || !code) return c.json({ success: false, error: "Name and Code are required" }, 400);
 
@@ -59,7 +57,7 @@ dictionariesApi.post("/", async (c) => {
   }
 });
 
-dictionariesApi.put("/:id", async (c) => {
+dictionariesApi.put("/:id", authMiddleware, async (c) => {
   const id = c.req.param("id");
   const { name, code, value, type, parent_id, sort_order, description } = await c.req.json();
   if (!name || !code) return c.json({ success: false, error: "Name and Code are required" }, 400);
@@ -100,7 +98,7 @@ dictionariesApi.put("/:id", async (c) => {
   }
 });
 
-dictionariesApi.delete("/:id", async (c) => {
+dictionariesApi.delete("/:id", authMiddleware, async (c) => {
   const id = c.req.param("id");
 
   try {

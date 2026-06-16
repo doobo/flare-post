@@ -4,22 +4,81 @@ import { authMiddleware } from "../security/middleware";
 
 const postsApi = new Hono<{ Bindings: Bindings }>();
 
+function extractEndDate(contentMd: string): string | null {
+  const match = contentMd.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!match) return null;
+  const yaml = match[1];
+  for (const line of yaml.split(/\r?\n/)) {
+    if (line.startsWith("end_date:")) {
+      const val = line.slice("end_date:".length).trim();
+      return val || null;
+    }
+  }
+  return null;
+}
+
 postsApi.get("/", async (c) => {
   const q = c.req.query("q");
-  let query = "SELECT * FROM posts WHERE status = 'published' ORDER BY created_at DESC";
+  const category = c.req.query("category");
+  const sort = c.req.query("sort") || "latest";
+  const page = parseInt(c.req.query("page") || "0");
+  const limit = parseInt(c.req.query("limit") || "20");
+
+  let conditions = ["status = 'published'"];
   let params: any[] = [];
 
   if (q) {
-    query = "SELECT * FROM posts WHERE status = 'published' AND (title LIKE ? OR content_md LIKE ?) ORDER BY created_at DESC";
-    params = [`%${q}%`, `%${q}%`];
+    conditions.push("(title LIKE ? OR content_md LIKE ?)");
+    params.push(`%${q}%`, `%${q}%`);
   }
 
-  const { results } = await c.env.DB.prepare(query).bind(...params).all();
-  const mapped = (results || []).map((item: any) => ({
+  if (category) {
+    conditions.push("category = ?");
+    params.push(category);
+  }
+
+  const where = conditions.join(" AND ");
+
+  // Count total matching posts
+  const countResult = await c.env.DB.prepare(
+    `SELECT COUNT(*) as total FROM posts WHERE ${where}`
+  ).bind(...params).first<any>();
+  const total = countResult?.total || 0;
+
+  // Fetch posts
+  let orderBy = "created_at DESC";
+  if (sort === "ending_soon") {
+    orderBy = "created_at ASC";
+  }
+
+  const fetchQuery = `SELECT * FROM posts WHERE ${where} ORDER BY ${orderBy}`;
+  const { results } = await c.env.DB.prepare(fetchQuery).bind(...params).all();
+
+  let posts = (results || []).map((item: any) => ({
     ...item,
     content: item.content_md
   }));
-  return c.json(mapped);
+
+  // For ending_soon sort, parse frontmatter and sort by end_date
+  if (sort === "ending_soon") {
+    posts.sort((a: any, b: any) => {
+      const aEnd = extractEndDate(a.content_md);
+      const bEnd = extractEndDate(b.content_md);
+      if (!aEnd && !bEnd) return 0;
+      if (!aEnd) return 1;
+      if (!bEnd) return -1;
+      return new Date(aEnd).getTime() - new Date(bEnd).getTime();
+    });
+  }
+
+  // Pagination (only if page param is explicitly provided)
+  if (page > 0) {
+    const offset = (page - 1) * limit;
+    const paginated = posts.slice(offset, offset + limit);
+    return c.json({ posts: paginated, total, page, limit });
+  }
+
+  return c.json(posts);
 });
 
 postsApi.get("/:id", async (c) => {
