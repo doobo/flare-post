@@ -1246,7 +1246,6 @@ const submitPost = async () => {
     } else {
       const data = await res.json()
       if (res.status === 401) {
-        showToast('登录过期，请重新登录', 'error')
         localStorage.removeItem('adminToken')
         router.push('/admin/login')
       } else {

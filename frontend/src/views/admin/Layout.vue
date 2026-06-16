@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-slate-50 flex">
     <!-- Sidebar Menu -->
     <div :class="isCollapsed ? 'w-20' : 'w-64'" class="bg-slate-900 text-white flex flex-col shadow-xl transition-all duration-300 ease-in-out">
-      <div :class="isCollapsed ? 'h-16 px-3' : 'h-16 px-6'" class="flex items-center border-b border-slate-800">
+      <div :class="isCollapsed ? 'h-16 px-3 justify-center' : 'h-16 px-6'" class="flex items-center border-b border-slate-800">
         <h1 v-show="!isCollapsed" class="text-xl font-bold tracking-wider text-indigo-400 transition-all duration-300">{{ adminTitle }}</h1>
         <h1 v-show="isCollapsed" class="text-lg font-bold tracking-wider text-indigo-400 transition-all duration-300">{{ collapsedTitle }}</h1>
       </div>

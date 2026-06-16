@@ -95,7 +95,6 @@ const deletePost = async (id: number) => {
     if (res.ok) {
       posts.value = posts.value.filter(p => p.id !== id)
     } else if (res.status === 401) {
-      showToast('Session expired. Please log in again.', 'error')
       localStorage.removeItem('adminToken')
       router.push('/admin/login')
     } else {

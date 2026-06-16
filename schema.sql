@@ -113,6 +113,6 @@ INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order)
 
 -- Insert admin layout config
 INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order) VALUES (200, '系统标题', 'admin_title', 'Data Center', 'normal', 0, 0);
-INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order) VALUES (201, '热门标签', 'hot_tags', 'kvm,cheap,us,annual,unlimited,ssd,dDoS保护', 'normal', 0, 0);
+INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order) VALUES (201, '热门标签', 'hot_tags', 'kvm,vps,annual,unlimited,domain', 'normal', 0, 0);
 
 

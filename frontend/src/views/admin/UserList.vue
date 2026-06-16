@@ -252,7 +252,6 @@ const deleteUser = async (id: number) => {
 }
 
 const handleAuthError = () => {
-  showToast('Session expired. Please log in again.', 'error')
   localStorage.removeItem('adminToken')
   router.push('/admin/login')
 }

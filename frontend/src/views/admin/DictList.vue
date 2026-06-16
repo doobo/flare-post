@@ -14,62 +14,63 @@
         </button>
       </div>
 
-      <!-- Breadcrumbs Path -->
-      <nav class="flex items-center space-x-2 text-sm text-slate-600 mb-6 bg-slate-100/80 px-4 py-3 rounded-xl border border-slate-200/50">
-        <button @click="navigateToBreadcrumb(-1)" class="hover:text-indigo-600 font-medium transition-colors flex items-center">
-          <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
-          Root
-        </button>
-        <template v-for="(crumb, idx) in breadcrumbs" :key="crumb.id">
-          <svg class="h-5 w-5 text-slate-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-          </svg>
-          <button 
-            @click="navigateToBreadcrumb(idx)" 
-            :disabled="idx === breadcrumbs.length - 1"
-            class="hover:text-indigo-600 font-medium transition-colors disabled:hover:text-slate-600 disabled:opacity-90"
-          >
-            {{ crumb.name }}
-          </button>
-        </template>
-      </nav>
-
-      <!-- Search & Filters Bar -->
-      <div class="mb-6 bg-white rounded-2xl shadow-sm border border-slate-100 p-4 flex flex-col md:flex-row md:items-center gap-4">
-        <!-- Text Search -->
-        <div class="relative flex-1">
-          <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-            <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      <!-- Breadcrumbs & Search -->
+      <div class="mb-6 bg-white rounded-2xl shadow-sm border border-slate-100 p-4 flex flex-col md:flex-row md:items-center gap-3">
+        <!-- Breadcrumbs Path -->
+        <nav class="flex items-center space-x-2 text-sm text-slate-600 flex-1">
+          <button @click="navigateToBreadcrumb(-1)" class="hover:text-indigo-600 font-medium transition-colors flex items-center">
+            <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
-          </span>
-          <input 
-            v-model="searchQuery" 
-            type="text" 
-            class="w-full pl-10 pr-4 py-2 border border-slate-250 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" 
-            placeholder="Search dictionaries by name or code..." 
-          />
-        </div>
-        
-        <!-- Type Filter -->
-        <div class="w-full md:w-48">
+            Root
+          </button>
+          <template v-for="(crumb, idx) in breadcrumbs" :key="crumb.id">
+            <svg class="h-5 w-5 text-slate-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+            <button 
+              @click="navigateToBreadcrumb(idx)" 
+              :disabled="idx === breadcrumbs.length - 1"
+              class="hover:text-indigo-600 font-medium transition-colors disabled:hover:text-slate-600 disabled:opacity-90 whitespace-nowrap"
+            >
+              {{ crumb.name }}
+            </button>
+          </template>
+        </nav>
+
+        <!-- Search & Filters -->
+        <div class="flex items-center gap-3 md:ml-auto">
+          <!-- Text Search -->
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </span>
+            <input 
+              v-model="searchQuery" 
+              type="text" 
+              class="w-full pl-10 pr-4 py-2 border border-slate-250 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" 
+              placeholder="Search..." 
+            />
+          </div>
+          
+          <!-- Type Filter -->
           <select 
             v-model="filterType" 
-            class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-sm"
+            class="px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-sm"
           >
             <option value="">All Types</option>
-            <option value="normal">Normal (Plaintext)</option>
-            <option value="encode">Encode (Encrypted)</option>
+            <option value="normal">Normal</option>
+            <option value="encode">Encode</option>
           </select>
-        </div>
 
-        <!-- Mode Indicator -->
-        <span v-if="searchQuery || filterType" class="text-xs text-indigo-600 bg-indigo-50 px-2.5 py-1.5 rounded-full font-semibold self-start md:self-auto flex items-center">
-          <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 mr-1.5 animate-pulse"></span>
-          Filters Active
-        </span>
+          <!-- Mode Indicator -->
+          <span v-if="searchQuery || filterType" class="text-xs text-indigo-600 bg-indigo-50 px-2.5 py-1.5 rounded-full font-semibold flex items-center">
+            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 mr-1.5 animate-pulse"></span>
+            Active
+          </span>
+        </div>
       </div>
 
       <!-- Dictionary Items Table -->
@@ -444,7 +445,6 @@ const deleteItem = async (id: number) => {
 }
 
 const handleAuthError = () => {
-  showToast('Session expired. Please log in again.', 'error')
   localStorage.removeItem('adminToken')
   router.push('/admin/login')
 }

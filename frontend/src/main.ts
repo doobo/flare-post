@@ -5,11 +5,13 @@ import router from './router'
 import { showToast } from './utils/toast'
 
 // Intercept global fetch to handle 401 Unauthorized errors
+let sessionExpired = false
 const originalFetch = window.fetch
 window.fetch = async (...args) => {
   try {
     const response = await originalFetch(...args)
-    if (response.status === 401) {
+    if (response.status === 401 && !sessionExpired) {
+      sessionExpired = true
       // Clear token and show notice
       localStorage.removeItem('adminToken')
       showToast('登录已失效，请重新登录。', 'error')
