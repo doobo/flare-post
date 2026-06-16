@@ -9,9 +9,9 @@
     />
 
     <!-- Main Content -->
-    <div class="max-w-5xl mx-auto pt-20 px-6 sm:px-8">
+    <div class="max-w-5xl mx-auto pt-16 px-4 sm:px-6 pb-24">
       <!-- Toolbar: Category dropdown | Count | Sort -->
-      <div class="flex items-center gap-2 mb-6 bg-white border border-slate-100 rounded-xl shadow-sm px-3 py-2">
+      <div class="flex items-center gap-2 mb-4 bg-white border border-slate-100 rounded-lg shadow-sm px-2.5 py-1.5">
         <!-- Category tree dropdown -->
         <div class="relative category-dropdown">
           <button @click="showCategoryDropdown = !showCategoryDropdown" class="flex items-center gap-1 text-sm text-slate-600 hover:text-indigo-600 transition-colors whitespace-nowrap">
@@ -67,7 +67,7 @@
 
       <!-- Loading: Skeleton -->
       <div v-if="loading && posts.length === 0" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div v-for="n in 4" :key="n" class="bg-white rounded-2xl p-6 border border-slate-100 animate-pulse">
+        <div v-for="n in 4" :key="n" class="bg-white rounded-xl px-3 py-4 border border-slate-100 animate-pulse">
           <div class="flex justify-between items-start mb-4">
             <div class="h-5 w-20 bg-slate-200 rounded-full"></div>
             <div class="h-4 w-16 bg-slate-200 rounded"></div>
@@ -94,8 +94,8 @@
       </div>
 
       <!-- Post Cards -->
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div v-for="post in posts" :key="post.id" class="bg-white rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 group flex flex-col transform hover:-translate-y-1">
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div v-for="post in posts" :key="post.id" class="bg-white rounded-xl px-3 py-4 shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 group flex flex-col transform hover:-translate-y-0.5">
           <!-- Top Row: Discount Badge + Category + Countdown -->
           <div class="flex items-center gap-2 mb-3 flex-wrap">
             <span v-if="post.discount" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
@@ -114,7 +114,7 @@
 
           <!-- Title (with search highlight) -->
           <router-link :to="'/post/' + post.id" class="block mb-2">
-            <h2 class="text-xl font-bold text-slate-800 group-hover:text-indigo-600 transition-colors line-clamp-2 leading-tight" v-html="highlightText(post.title)"></h2>
+            <h2 class="text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition-colors line-clamp-2 leading-tight" v-html="highlightText(post.title)"></h2>
           </router-link>
 
           <!-- Excerpt (with search highlight) -->
@@ -211,6 +211,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import NavBar from '@/components/NavBar.vue'
 
 interface Post {
@@ -236,9 +237,10 @@ import { parseFrontmatter } from '@/utils/frontmatter'
 const posts = ref<Post[]>([])
 const loading = ref(false)
 const error = ref(false)
-const searchQuery = ref('')
-const selectedCategory = ref('')
-const selectedCategoryLabel = ref('All Categories')
+const route = useRoute()
+const searchQuery = ref((route.query.q as string) || '')
+const selectedCategory = ref((route.query.category as string) || '')
+const selectedCategoryLabel = ref(selectedCategory.value || 'All Categories')
 const showCategoryDropdown = ref(false)
 const showFabMenu = ref(false)
 const activeParent = ref('')
@@ -404,6 +406,12 @@ watch(searchQuery, () => {
   searchTimer = setTimeout(() => {
     fetchPosts()
   }, 300)
+})
+
+watch(() => route.query, (query) => {
+  searchQuery.value = (query.q as string) || ''
+  selectedCategory.value = (query.category as string) || ''
+  selectedCategoryLabel.value = selectedCategory.value || 'All Categories'
 })
 
 let searchTimer: ReturnType<typeof setTimeout> | null = null

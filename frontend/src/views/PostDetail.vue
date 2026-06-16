@@ -1,14 +1,13 @@
 <template>
-  <div class="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-4xl mx-auto">
-      <div class="mb-6">
-        <router-link to="/" class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors">
-          <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Back to Offers
-        </router-link>
-      </div>
+  <div class="min-h-screen bg-slate-50">
+    <NavBar
+      :categoriesTree="categoriesTree"
+      :activeParent="''"
+      :searchQuery="searchQuery"
+      @update:searchQuery="onSearch"
+      @selectParentCategory="onSelectCategory"
+    />
+    <div class="max-w-4xl mx-auto pt-16 px-3 sm:px-5 lg:px-6 pb-24">
 
       <div v-if="loading" class="flex justify-center py-20">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -22,10 +21,10 @@
         <h3 class="text-lg font-medium text-slate-900">Post not found</h3>
         <p class="mt-2 text-sm text-slate-500">The offer you're looking for doesn't exist or has been removed.</p>
       </div>
-      <div v-else class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div class="p-8 sm:p-10 border-b border-slate-100 bg-slate-50/50">
+      <div v-else>
+        <div class="py-6">
           <div class="flex items-center gap-3 mb-4">
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 tracking-wide uppercase shadow-sm">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 tracking-wide uppercase">
               {{ post.category }}
             </span>
             <span class="text-sm text-slate-500 font-medium flex items-center">
@@ -35,15 +34,14 @@
               {{ new Date(post.created_at).toLocaleDateString() }}
             </span>
           </div>
-          <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight mb-2">{{ post.title }}</h1>
+          <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight mb-6">{{ post.title }}</h1>
         </div>
         
-        <!-- Offer Metadata Callout -->
-        <div v-if="hasMetadata" class="px-8 pt-8 sm:px-10 flex flex-wrap gap-4">
+        <div v-if="hasMetadata" class="flex flex-wrap gap-4 mb-6">
           <div v-if="metadata.discount_strength" class="flex-1 min-w-[200px] bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-center space-x-3">
             <span class="text-2xl">💰</span>
             <div>
-              <div class="text-[10px] uppercase font-bold text-emerald-600 tracking-wider">Discount Strength / Price</div>
+              <div class="text-[10px] uppercase font-bold text-emerald-600 tracking-wider">Price</div>
               <div class="text-base font-bold text-slate-800">{{ metadata.discount_strength }}</div>
             </div>
           </div>
@@ -62,20 +60,17 @@
           <div v-if="metadata.start_date || metadata.end_date" class="flex-1 min-w-[200px] bg-amber-50 border border-amber-100 rounded-xl p-4 flex items-center space-x-3">
             <span class="text-2xl">📅</span>
             <div>
-              <div class="text-[10px] uppercase font-bold text-amber-600 tracking-wider">Validity Period</div>
+              <div class="text-[10px] uppercase font-bold text-amber-600 tracking-wider">Validity</div>
               <div class="text-xs text-slate-700">
                 <div v-if="metadata.start_date">Start: {{ formatDate(metadata.start_date) }}</div>
                 <div v-if="metadata.end_date">End: {{ formatDate(metadata.end_date) }}</div>
-                <div v-else class="font-medium text-amber-800">Permanent / Always valid</div>
+                <div v-else class="font-medium text-amber-800">Always valid</div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Content -->
-        <div class="p-8 sm:p-10">
-          <div class="prose prose-indigo prose-lg max-w-none prose-a:text-indigo-600 hover:prose-a:text-indigo-500 prose-img:rounded-xl prose-img:shadow-md" v-html="renderContent()"></div>
-        </div>
+        <div class="prose prose-indigo prose-lg max-w-none prose-a:text-indigo-600 hover:prose-a:text-indigo-500 prose-img:rounded-xl prose-img:shadow-md" v-html="renderContent()"></div>
       </div>
     </div>
   </div>
@@ -83,12 +78,52 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import MarkdownIt from 'markdown-it'
+import NavBar from '@/components/NavBar.vue'
 import { parseFrontmatter, type ContentMetadata } from '@/utils/frontmatter'
 import { showToast } from '@/utils/toast'
 
 const route = useRoute()
+const router = useRouter()
+
+const searchQuery = ref('')
+const categoriesTree = ref<any[]>([])
+
+const onSearch = (val: string) => {
+  router.push({ path: '/', query: { q: val } })
+}
+
+const onSelectCategory = (name: string) => {
+  router.push({ path: '/', query: name ? { category: name } : {} })
+}
+
+const buildCategoryTree = (list: any[], parentId: number, parentName = ''): any[] => {
+  return list
+    .filter((item: any) => item.parent_id === parentId)
+    .sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0))
+    .map((item: any) => {
+      const label = parentName ? `${parentName} / ${item.name}` : item.name
+      return {
+        id: item.id,
+        name: item.name,
+        label,
+        children: buildCategoryTree(list, item.id, label)
+      }
+    })
+}
+
+const fetchCategories = async () => {
+  try {
+    const res = await fetch('/api/dictionaries')
+    if (!res.ok) return
+    const data = await res.json()
+    const raw = data.filter((item: any) => item.code === 'category_list')
+    categoriesTree.value = buildCategoryTree(raw, 100)
+  } catch (e) {
+    console.error('Failed to fetch categories', e)
+  }
+}
 const md = new MarkdownIt({ linkify: true, breaks: true })
 
 // Customize markdown renderer to open links in new tab
@@ -169,5 +204,6 @@ const renderContent = () => {
 
 onMounted(() => {
   fetchPost()
+  fetchCategories()
 })
 </script>

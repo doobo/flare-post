@@ -1,5 +1,5 @@
 <template>
-  <header class="fixed top-0 left-0 right-0 h-14 bg-white border-b border-slate-100 z-50">
+  <header class="fixed top-0 left-0 right-0 h-14 bg-white border-b border-slate-200 shadow-sm z-50">
     <div class="max-w-5xl mx-auto h-full px-4 sm:px-6 flex items-center gap-3">
       <!-- Hamburger (mobile) -->
       <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-1.5 rounded-lg hover:bg-slate-100 text-slate-500">
