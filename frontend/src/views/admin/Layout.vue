@@ -2,14 +2,9 @@
   <div class="min-h-screen bg-slate-50 flex">
     <!-- Sidebar Menu -->
     <div :class="isCollapsed ? 'w-20' : 'w-64'" class="bg-slate-900 text-white flex flex-col shadow-xl transition-all duration-300 ease-in-out">
-      <div :class="isCollapsed ? 'px-2 py-4 flex-col space-y-4' : 'p-6 justify-between'" class="flex items-center border-b border-slate-800">
+      <div :class="isCollapsed ? 'h-16 px-3' : 'h-16 px-6'" class="flex items-center border-b border-slate-800">
         <h1 v-show="!isCollapsed" class="text-xl font-bold tracking-wider text-indigo-400 transition-all duration-300">{{ adminTitle }}</h1>
         <h1 v-show="isCollapsed" class="text-lg font-bold tracking-wider text-indigo-400 transition-all duration-300">{{ collapsedTitle }}</h1>
-        <button @click="toggleSidebar" :class="isCollapsed ? 'w-10 h-10' : 'p-1.5'" class="rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all duration-300 flex items-center justify-center cursor-pointer">
-          <svg class="w-5 h-5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="isCollapsed ? 'M9 5l7 7-7 7' : 'M15 19l-7-7 7-7'" />
-          </svg>
-        </button>
       </div>
       <div class="flex-1 py-6 space-y-1.5 overflow-y-auto transition-all duration-300" :class="isCollapsed ? 'px-2 no-scrollbar' : 'px-4'">
         <div v-for="menu in sideMenus" :key="menu.id" class="space-y-1">
@@ -178,9 +173,14 @@
     <!-- Main Content Area Wrapper -->
     <div class="flex-1 flex flex-col h-screen overflow-hidden">
       <!-- Top Navigation Bar -->
-      <header class="bg-white border-b border-slate-100 h-16 flex items-center justify-between px-6 shrink-0 shadow-sm z-10">
+      <header class="bg-white border-b border-slate-100 h-16 flex items-center justify-between pl-0 pr-6 shrink-0 shadow-sm z-10">
         <!-- Left: Page Title / Breadcrumb -->
         <div class="flex items-center space-x-4">
+          <button @click="toggleSidebar" class="p-1 rounded cursor-pointer" :title="isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="isCollapsed ? 'M9 5l7 7-7 7' : 'M15 19l-7-7 7-7'" />
+            </svg>
+          </button>
           <div class="flex items-center space-x-2 text-sm text-slate-500">
             <span class="font-bold text-slate-800 text-base">{{ currentMenuName }}</span>
           </div>
@@ -188,15 +188,23 @@
 
         <!-- Right: User Profile & Quick Logout -->
         <div class="flex items-center space-x-4">
-          <div class="flex items-center space-x-3 border-r border-slate-100 pr-4">
+          <div v-if="userInfo" class="flex items-center space-x-3 border-r border-slate-100 pr-4">
             <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">
-              A
+              {{ userInfo.username.charAt(0).toUpperCase() }}
             </div>
             <div class="text-left hidden sm:block">
-              <div class="text-xs font-semibold text-slate-700">Administrator</div>
-              <div class="text-[10px] text-slate-400">admin@example.com</div>
+              <div class="text-xs font-semibold text-slate-700">{{ userInfo.username }}</div>
+              <div class="text-[10px] text-slate-400">{{ userInfo.email || 'No email' }}</div>
             </div>
           </div>
+          <button @click="toggleFullscreen" class="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer" :title="isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'">
+            <svg v-if="!isFullscreen" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8V3m0 0h5M3 3l6 6m12 0V3m0 0h-5m5 0l-6 6M3 16v5m0 0h5m-5 0l6-6m12 5v-5m0 5h-5m5 0l-6-6" />
+            </svg>
+            <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V3m0 0L3 9m6-6l6 6m0 0v6m0 0l6-6m-6 6H9" />
+            </svg>
+          </button>
           <button @click="logout" class="p-2 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer" title="Logout">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -258,6 +266,15 @@ interface SideMenu {
 const sideMenus = ref<SideMenu[]>([])
 const openMenus = ref<Record<number, boolean>>({})
 const isCollapsed = ref(localStorage.getItem('sidebar-collapsed') === 'true')
+
+interface UserInfo {
+  id: number
+  username: string
+  email: string
+  role: string
+}
+const userInfo = ref<UserInfo | null>(null)
+const isFullscreen = ref(false)
 
 const adminTitle = ref('Admin Panel')
 const collapsedTitle = computed(() => {
@@ -446,6 +463,36 @@ const getIconComponent = (iconName: string | null, isSub = false, collapsed = fa
   }
 }
 
+const toggleFullscreen = async () => {
+  if (!document.fullscreenElement) {
+    await document.documentElement.requestFullscreen()
+  } else {
+    await document.exitFullscreen()
+  }
+}
+
+const onFullscreenChange = () => {
+  isFullscreen.value = !!document.fullscreenElement
+}
+
+const fetchUserInfo = async () => {
+  const token = localStorage.getItem('adminToken')
+  if (!token) return
+  try {
+    const res = await fetch('/api/auth/me', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    if (res.ok) {
+      const data = await res.json()
+      if (data.success) {
+        userInfo.value = data.user
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load user info:', e)
+  }
+}
+
 onMounted(() => {
   const token = localStorage.getItem('adminToken')
   if (!token) {
@@ -453,12 +500,15 @@ onMounted(() => {
   } else {
     fetchAdminTitle()
     fetchSideMenus()
+    fetchUserInfo()
   }
   window.addEventListener('menus-updated', fetchSideMenus)
+  document.addEventListener('fullscreenchange', onFullscreenChange)
 })
 
 onUnmounted(() => {
   window.removeEventListener('menus-updated', fetchSideMenus)
+  document.removeEventListener('fullscreenchange', onFullscreenChange)
 })
 
 const logout = () => {
