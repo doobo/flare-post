@@ -6,6 +6,7 @@ import usersApi from "../api/users";
 import dictionariesApi from "../api/dictionaries";
 import menusApi from "../api/menus";
 import redirectApi from "../api/redirect";
+import uploadApi from "../api/upload";
 
 const app = new Hono<{ Bindings: Bindings }>();
 
@@ -14,6 +15,7 @@ app.route("/api/auth", authApi);
 app.route("/api/users", usersApi);
 app.route("/api/dictionaries", dictionariesApi);
 app.route("/api/menus", menusApi);
+app.route("/api/upload", uploadApi);
 app.route("/", redirectApi);
 
 export default app;

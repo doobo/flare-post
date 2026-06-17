@@ -74,7 +74,7 @@
       </div>
 
       <!-- Dictionary Items Table -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-x-auto">
         <div v-if="loading" class="flex justify-center py-12">
           <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
         </div>
@@ -85,8 +85,6 @@
               <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Name</th>
               <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Code</th>
               <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Value</th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Sort Order</th>
               <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Description</th>
               <th scope="col" class="px-6 py-4 class-right text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
             </tr>
@@ -113,12 +111,6 @@
                   {{ item.type }}
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                {{ item.value || '-' }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                {{ item.sort_order }}
-              </td>
               <td class="px-6 py-4 text-sm text-slate-400 max-w-xs truncate">
                 {{ item.description || '-' }}
               </td>
@@ -131,7 +123,7 @@
               </td>
             </tr>
             <tr v-if="items.length === 0">
-              <td colspan="6" class="px-6 py-10 text-center text-slate-400 text-sm">
+              <td colspan="5" class="px-6 py-10 text-center text-slate-400 text-sm">
                 No configuration items found under this level.
               </td>
             </tr>
@@ -149,7 +141,7 @@
       <div class="fixed inset-0 z-10 overflow-y-auto">
         <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0" @click.self="closeModal">
           <!-- Modal Content -->
-          <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform transition-all text-left my-8">
+          <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden transform transition-all text-left my-8">
             <form @submit.prevent="saveItem">
               <div class="px-6 py-6 sm:p-8">
                 <h3 class="text-xl font-semibold text-slate-900 mb-1" id="modal-title">

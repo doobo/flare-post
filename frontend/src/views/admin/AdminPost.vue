@@ -272,6 +272,15 @@
                   <button type="button" @click="insertFormatting('bold')" class="px-1.5 py-0.5 rounded hover:bg-slate-200 text-slate-600 text-[10px] font-bold">B</button>
                   <button type="button" @click="insertFormatting('italic')" class="px-1.5 py-0.5 rounded hover:bg-slate-200 text-slate-600 text-[10px] italic font-bold">I</button>
                   <button type="button" @click="insertFormatting('link')" class="px-1.5 py-0.5 rounded hover:bg-slate-200 text-slate-600 text-[10px] font-bold">链接</button>
+                  <button type="button" @click="triggerImageUpload" :disabled="uploadingImage" class="px-1.5 py-0.5 rounded hover:bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center gap-0.5">
+                    <svg v-if="uploadingImage" class="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <svg v-else class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    图片
+                  </button>
+                  <input ref="imageInputRef" type="file" accept="image/jpeg,image/png,image/gif,image/webp,image/avif,image/bmp" class="hidden" @change="onImageSelected" />
                 </div>
               </div>
 
@@ -624,6 +633,8 @@ const categoriesTree = ref<any[]>([])
 
 const richEditorRef = ref<HTMLElement | null>(null)
 const markdownTextareaRef = ref<HTMLTextAreaElement | null>(null)
+const imageInputRef = ref<HTMLInputElement | null>(null)
+const uploadingImage = ref(false)
 
 const previewWidth = computed(() => {
   if (previewDevice.value === 'mobile') return '375px'
@@ -891,6 +902,66 @@ const insertFormatting = (type: 'h1' | 'h2' | 'bold' | 'italic' | 'link') => {
       el.focus()
       el.setSelectionRange(start + replacement.length, start + replacement.length)
     }, 0)
+  }
+}
+
+const triggerImageUpload = () => {
+  imageInputRef.value?.click()
+}
+
+const onImageSelected = async (e: Event) => {
+  const target = e.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+
+  uploadingImage.value = true
+  const token = localStorage.getItem('adminToken')
+
+  try {
+    const formData = new FormData()
+    formData.append('image', file)
+
+    const res = await fetch('/api/upload/image', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      showToast(data.error || '图片上传失败', 'error')
+      return
+    }
+
+    const imageUrl = data.url
+    if (form.value.content_type === 'richtext') {
+      richEditorRef.value?.focus()
+      document.execCommand('insertHTML', false, `<img src="${imageUrl}" alt="uploaded image" style="max-width:100%" />`)
+      if (richEditorRef.value) {
+        form.value.content_html = richEditorRef.value.innerHTML
+      }
+    } else {
+      const el = markdownTextareaRef.value
+      if (!el) return
+      const start = el.selectionStart
+      const end = el.selectionEnd
+      const text = el.value
+      const imageMd = `![uploaded image](${imageUrl})`
+      form.value.content_md = text.substring(0, start) + imageMd + text.substring(end)
+      setTimeout(() => {
+        el.focus()
+        el.setSelectionRange(start + imageMd.length, start + imageMd.length)
+      }, 0)
+    }
+    showToast('图片上传成功', 'success')
+  } catch (err) {
+    showToast('图片上传失败: 网络错误', 'error')
+  } finally {
+    uploadingImage.value = false
+    target.value = ''
   }
 }
 

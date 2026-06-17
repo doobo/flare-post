@@ -104,7 +104,8 @@ postsApi.post("/", authMiddleware, async (c) => {
 
   let updatedContent = finalContent;
   if (finalContentType === 'markdown') {
-    const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g;
+    // Exclude markdown image syntax ![alt](url) — only rewrite actual links
+    const linkRegex = /(?<!!)\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g;
     updatedContent = finalContent.replace(linkRegex, (fullMatch: string, text: string, url: string) => {
       if (url.startsWith('/redirect?url=') || url.includes(c.req.header('host') || '')) return fullMatch;
       return `[${text}](/redirect?url=${encodeURIComponent(url)})`;
@@ -137,7 +138,8 @@ postsApi.put("/:id", authMiddleware, async (c) => {
 
   let updatedContent = finalContent;
   if (finalContentType === 'markdown') {
-    const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g;
+    // Exclude markdown image syntax ![alt](url) — only rewrite actual links
+    const linkRegex = /(?<!!)\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g;
     updatedContent = finalContent.replace(linkRegex, (fullMatch: string, text: string, url: string) => {
       if (url.startsWith('/redirect?url=') || url.includes(c.req.header('host') || '')) return fullMatch;
       return `[${text}](/redirect?url=${encodeURIComponent(url)})`;
