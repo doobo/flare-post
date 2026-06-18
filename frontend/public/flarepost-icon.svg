@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="flameGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#EA580C"/>
+      <stop offset="50%" stop-color="#F97316"/>
+      <stop offset="100%" stop-color="#FB923C"/>
+    </linearGradient>
+  </defs>
+  <path d="M24 46 Q6 34 12 20 Q16 8 22 3 Q24 1 24 7 Q24 1 26 3 Q32 8 36 20 Q42 34 24 46Z" fill="url(#flameGrad)"/>
+</svg>

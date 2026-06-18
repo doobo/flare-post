@@ -11,7 +11,7 @@
 
       <!-- Logo -->
       <router-link to="/" class="flex items-center shrink-0">
-        <span class="text-base font-bold text-slate-800">Cloud Offers</span>
+        <span class="text-base font-bold text-slate-800">FlarePost</span>
       </router-link>
 
       <!-- Desktop category tabs -->
