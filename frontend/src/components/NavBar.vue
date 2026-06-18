@@ -1,6 +1,6 @@
 <template>
   <header class="fixed top-0 left-0 right-0 h-14 bg-white border-b border-slate-200 shadow-sm z-50">
-    <div class="max-w-5xl mx-auto h-full px-4 sm:px-6 flex items-center gap-3">
+    <div class="max-w-5xl mx-auto h-full px-4 sm:px-6 flex items-center">
       <!-- Hamburger (mobile) -->
       <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-1.5 rounded-lg hover:bg-slate-100 text-slate-500">
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -11,7 +11,7 @@
 
       <!-- Logo -->
       <router-link to="/" class="flex items-center shrink-0">
-        <span class="text-base font-bold text-slate-800">FlarePost</span>
+        <img src="/flarepost-logo.svg" alt="FlarePost" class="w-[95px]" />
       </router-link>
 
       <!-- Desktop category tabs -->
@@ -19,7 +19,7 @@
         <button
           @click="$emit('selectParentCategory', '')"
           :class="activeParent === '' ? 'text-indigo-600 border-indigo-600' : 'text-slate-500 hover:text-slate-700 border-transparent'"
-          class="px-3 py-1 text-sm font-medium border-b-2 transition-colors whitespace-nowrap"
+            class="px-2.5 py-0.5 text-xs font-medium border-b-2 transition-colors whitespace-nowrap"
         >
           All
         </button>
@@ -27,7 +27,7 @@
           v-for="parent in categoriesTree" :key="parent.id"
           @click="$emit('selectParentCategory', parent.name)"
           :class="activeParent === parent.name ? 'text-indigo-600 border-indigo-600' : 'text-slate-500 hover:text-slate-700 border-transparent'"
-          class="px-3 py-1 text-sm font-medium border-b-2 transition-colors whitespace-nowrap"
+            class="px-2.5 py-0.5 text-xs font-medium border-b-2 transition-colors whitespace-nowrap"
         >
           {{ parent.name }}
         </button>
@@ -37,13 +37,13 @@
       <div class="flex items-center gap-2 ml-auto lg:ml-0">
         <!-- Search desktop -->
         <div class="relative flex items-center">
-          <button v-if="!searchExpanded" @click="openSearch" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-indigo-600 transition-colors">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <button v-if="!searchExpanded" @click="openSearch" class="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-indigo-600 transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </button>
-          <div v-else class="flex items-center gap-1 bg-slate-100 rounded-full px-3 py-1.5">
-            <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div v-else class="flex items-center gap-1 bg-slate-100 rounded-full px-2.5 py-1">
+            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input

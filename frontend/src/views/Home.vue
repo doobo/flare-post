@@ -157,25 +157,38 @@
       </div>
     </div>
 
-    <!-- Floating category button (bottom right) -->
+    <!-- Floating action button (bottom right) -->
     <div class="fixed bottom-6 right-6 z-30 category-fab">
-      <button @click="showFabMenu = !showFabMenu" class="w-12 h-12 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-all flex items-center justify-center">
+      <button @click="showFabMenu = !showFabMenu" class="w-11 h-11 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-all flex items-center justify-center">
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
 
-      <!-- Floating category panel -->
+      <!-- Floating panel -->
       <Transition name="scale">
-        <div v-if="showFabMenu" class="absolute bottom-16 right-0 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-80 overflow-y-auto p-3">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Categories</span>
-            <button @click="showFabMenu = false" class="p-0.5 rounded hover:bg-slate-100 text-slate-400">
+        <div v-if="showFabMenu" class="absolute bottom-14 right-0 w-56 bg-white border border-slate-200 rounded-2xl shadow-2xl p-2">
+          <!-- Toolbar row -->
+          <div class="flex gap-1 mb-1">
+            <button @click="scrollToTop" class="flex-1 flex items-center justify-center py-2 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-indigo-600 transition-colors" title="Back to top">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+              </svg>
+            </button>
+            <button @click="openQRCode" class="flex-1 flex items-center justify-center py-2 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-indigo-600 transition-colors" title="QR Code">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
               </svg>
             </button>
           </div>
+
+          <div class="border-t border-slate-100 my-1"></div>
+
+          <!-- Categories header -->
+          <div class="flex items-center justify-between px-3 py-1">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Categories</span>
+          </div>
+
           <button
             @click="selectCategoryFab('')"
             :class="selectedCategory === '' && activeParent === '' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-600 hover:bg-slate-50'"
@@ -183,14 +196,13 @@
           >
             All Categories
           </button>
-          <div class="border-t border-slate-100 my-1.5"></div>
-          <div v-for="parent in categoriesTree" :key="parent.id" class="mb-1">
+          <div v-for="parent in categoriesTree" :key="parent.id" class="mt-0.5">
             <div class="px-3 py-0.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ parent.name }}</div>
             <button
               v-for="child in parent.children" :key="child.id"
               @click="selectCategoryFab(child.label)"
               :class="selectedCategory === child.label ? 'text-indigo-600 bg-indigo-50' : 'text-slate-600 hover:bg-slate-50'"
-              class="w-full text-left px-3 py-1.5 pl-6 rounded-lg text-sm transition-colors"
+              class="w-full text-left px-3 py-1 pl-6 rounded-lg text-sm transition-colors"
             >
               {{ child.name }}
             </button>
@@ -198,7 +210,7 @@
               v-if="!parent.children || parent.children.length === 0"
               @click="selectCategoryFab(parent.label)"
               :class="selectedCategory === parent.label ? 'text-indigo-600 bg-indigo-50' : 'text-slate-600 hover:bg-slate-50'"
-              class="w-full text-left px-3 py-1.5 pl-6 rounded-lg text-sm transition-colors"
+              class="w-full text-left px-3 py-1 pl-6 rounded-lg text-sm transition-colors"
             >
               {{ parent.name }}
             </button>
@@ -206,13 +218,37 @@
         </div>
       </Transition>
     </div>
+
+    <!-- QR Code Modal -->
+    <Transition name="fade">
+      <div v-if="showQRModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" @click="closeQRCode">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 w-80 mx-4" @click.stop>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-bold text-slate-800">QR Code</h3>
+            <button @click="closeQRCode" class="p-1 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div class="flex justify-center mb-4">
+            <img v-if="qrCodeDataUrl" :src="qrCodeDataUrl" alt="QR Code" class="w-48 h-48" />
+            <div v-else class="w-48 h-48 flex items-center justify-center bg-slate-50 rounded-xl">
+              <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+            </div>
+          </div>
+          <p class="text-xs text-slate-500 text-center break-all">{{ qrUrl }}</p>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import NavBar from '@/components/NavBar.vue'
+import QRCode from 'qrcode'
 
 interface Post {
   id: number
@@ -243,6 +279,9 @@ const selectedCategory = ref((route.query.category as string) || '')
 const selectedCategoryLabel = ref(selectedCategory.value || 'All Categories')
 const showCategoryDropdown = ref(false)
 const showFabMenu = ref(false)
+const showQRModal = ref(false)
+const qrCodeDataUrl = ref('')
+const qrUrl = ref('')
 const activeParent = ref('')
 const categoriesTree = ref<CategoryNode[]>([])
 const sortBy = ref('latest')
@@ -366,6 +405,31 @@ const selectCategoryFab = (label: string) => {
   filterPostsClientSide()
 }
 
+const scrollToTop = () => {
+  showFabMenu.value = false
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const openQRCode = async () => {
+  showFabMenu.value = false
+  showQRModal.value = true
+  qrUrl.value = window.location.href
+  try {
+    qrCodeDataUrl.value = await QRCode.toDataURL(window.location.href, {
+      width: 384,
+      margin: 2,
+      color: { dark: '#1E293B', light: '#FFFFFF' }
+    })
+  } catch {
+    qrCodeDataUrl.value = ''
+  }
+}
+
+const closeQRCode = () => {
+  showQRModal.value = false
+  qrCodeDataUrl.value = ''
+}
+
 const highlightText = (text: string): string => {
   if (!searchQuery.value || !text) return text
   const q = searchQuery.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -430,6 +494,10 @@ onMounted(() => {
   fetchPosts()
   fetchCategories()
   document.addEventListener('click', closeDropdown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeDropdown)
 })
 </script>
 
