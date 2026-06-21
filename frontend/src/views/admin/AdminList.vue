@@ -1,9 +1,20 @@
 <template>
   <div class="p-6 overflow-y-auto h-full flex-1">
     <div class="w-full">
-      <div class="mb-5 flex items-baseline space-x-2">
+      <div class="mb-5 flex items-center gap-3 flex-wrap">
         <h1 class="text-xl font-bold text-slate-800">Manage Offers</h1>
-        <span class="text-xs text-slate-400 hidden sm:inline">— View, edit, or remove published offers.</span>
+        <div class="flex-1"></div>
+        <div class="relative">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search offers..."
+            class="w-56 pl-9 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-white text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+          />
+        </div>
       </div>
 
       <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
@@ -21,7 +32,7 @@
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-slate-200">
-            <tr v-for="post in posts" :key="post.id" class="hover:bg-slate-50 transition-colors">
+            <tr v-for="post in filteredPosts" :key="post.id" class="hover:bg-slate-50 transition-colors">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm font-medium text-slate-900">{{ post.title }}</div>
               </td>
@@ -39,9 +50,9 @@
                 <button @click="deletePost(post.id)" class="text-red-600 hover:text-red-900">Delete</button>
               </td>
             </tr>
-            <tr v-if="posts.length === 0">
+            <tr v-if="filteredPosts.length === 0">
               <td colspan="4" class="px-6 py-8 text-center text-slate-500 text-sm">
-                No offers found. Start by publishing a new offer.
+                {{ searchQuery ? 'No offers match your search.' : 'No offers found. Start by publishing a new offer.' }}
               </td>
             </tr>
           </tbody>
@@ -52,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast } from '@/utils/toast'
 import { showConfirm } from '@/utils/confirm'
@@ -60,6 +71,16 @@ import { showConfirm } from '@/utils/confirm'
 const router = useRouter()
 const posts = ref<any[]>([])
 const loading = ref(true)
+const searchQuery = ref('')
+
+const filteredPosts = computed(() => {
+  if (!searchQuery.value) return posts.value
+  const q = searchQuery.value.toLowerCase()
+  return posts.value.filter(p =>
+    (p.title && p.title.toLowerCase().includes(q)) ||
+    (p.category && p.category.toLowerCase().includes(q))
+  )
+})
 
 const fetchPosts = async () => {
   loading.value = true

@@ -288,14 +288,14 @@ const loading = ref(false)
 const error = ref(false)
 const route = useRoute()
 const searchQuery = ref((route.query.q as string) || '')
-const selectedCategory = ref((route.query.category as string) || '')
-const selectedCategoryLabel = ref(selectedCategory.value || t('all_categories'))
+const selectedCategory = ref('')
+const activeParent = ref((route.query.category as string) || '')
+const selectedCategoryLabel = ref(activeParent.value || t('all_categories'))
 const showCategoryDropdown = ref(false)
 const showFabMenu = ref(false)
 const showQRModal = ref(false)
 const qrCodeDataUrl = ref('')
 const qrUrl = ref('')
-const activeParent = ref('')
 const categoriesTree = ref<CategoryNode[]>([])
 const sortBy = ref('latest')
 const page = ref(1)
@@ -514,8 +514,16 @@ watch(searchQuery, () => {
 
 watch(() => route.query, (query) => {
   searchQuery.value = (query.q as string) || ''
-  selectedCategory.value = (query.category as string) || ''
-  selectedCategoryLabel.value = selectedCategory.value || t('all_categories')
+  const cat = (query.category as string) || ''
+  if (cat) {
+    activeParent.value = cat
+    selectedCategory.value = ''
+  } else {
+    activeParent.value = ''
+    selectedCategory.value = ''
+  }
+  selectedCategoryLabel.value = activeParent.value || t('all_categories')
+  filterPostsClientSide()
 })
 
 let searchTimer: ReturnType<typeof setTimeout> | null = null
@@ -531,6 +539,12 @@ const closeDropdown = (e: MouseEvent) => {
 }
 
 onMounted(() => {
+  const cat = route.query.category as string | undefined
+  if (cat) {
+    activeParent.value = cat
+    selectedCategory.value = ''
+    selectedCategoryLabel.value = cat
+  }
   fetchPosts()
   fetchCategories()
   document.addEventListener('click', closeDropdown)
