@@ -21,7 +21,7 @@
           :class="activeParent === '' ? 'text-indigo-600 border-indigo-600' : 'text-slate-500 hover:text-slate-700 border-transparent'"
             class="px-2.5 py-0.5 text-xs font-medium border-b-2 transition-colors whitespace-nowrap"
         >
-          All
+          {{ t('nav_all') }}
         </button>
         <button
           v-for="parent in categoriesTree" :key="parent.id"
@@ -33,8 +33,15 @@
         </button>
       </div>
 
-      <!-- Right: Search + placeholder for flex -->
+      <!-- Right: Language switch + Search -->
       <div class="flex items-center gap-2 ml-auto lg:ml-0">
+        <!-- Language Switcher -->
+        <button @click="toggleLang" class="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-colors" :title="currentLang === 'zh-CN' ? 'Switch to English' : '切换到中文'">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {{ currentLang === 'zh-CN' ? 'EN' : '中' }}
+        </button>
         <!-- Search desktop -->
         <div class="relative flex items-center">
           <button v-if="!searchExpanded" @click="openSearch" class="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-indigo-600 transition-colors">
@@ -51,7 +58,7 @@
               :value="searchQuery"
               @input="$emit('update:searchQuery', ($event.target as HTMLInputElement).value)"
               type="text"
-              placeholder="Search..."
+              :placeholder="t('search_placeholder')"
               @blur="onBlur"
               class="w-32 sm:w-48 text-sm bg-transparent border-0 outline-none focus:ring-0 p-0 text-slate-700 placeholder:text-slate-400"
             />
@@ -69,7 +76,7 @@
     <Transition name="slide">
       <div v-if="mobileMenuOpen" class="fixed top-0 left-0 bottom-0 w-72 bg-white z-50 shadow-xl lg:hidden overflow-y-auto">
         <div class="p-4 border-b border-slate-100 flex items-center justify-between">
-          <span class="text-sm font-bold text-slate-800">Categories</span>
+          <span class="text-sm font-bold text-slate-800">{{ t('nav_categories') }}</span>
           <button @click="mobileMenuOpen = false" class="p-1 rounded-lg hover:bg-slate-100 text-slate-400">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -82,7 +89,7 @@
             :class="activeParent === '' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-600'"
             class="w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors"
           >
-            All Categories
+            {{ t('nav_all_categories') }}
           </button>
           <div class="border-t border-slate-100 my-2"></div>
           <div v-for="parent in categoriesTree" :key="parent.id" class="mb-2">
@@ -111,7 +118,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { t, setLocale, getLocale } from '@/utils/i18n'
 
 defineProps<{
   categoriesTree: { id: number; name: string; children: { id: number; name: string; label: string }[] }[]
@@ -127,6 +135,11 @@ const emit = defineEmits<{
 const searchExpanded = ref(false)
 const searchInputRef = ref<HTMLInputElement | null>(null)
 const mobileMenuOpen = ref(false)
+const currentLang = computed(() => getLocale())
+
+const toggleLang = () => {
+  setLocale(currentLang.value === 'zh-CN' ? 'en' : 'zh-CN')
+}
 
 const openSearch = () => {
   searchExpanded.value = true
