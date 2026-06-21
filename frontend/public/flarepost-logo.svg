@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="48" viewBox="0 0 200 48" fill="none">
+  <defs>
+    <linearGradient id="flameOuter" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#EA580C"/>
+      <stop offset="50%" stop-color="#F97316"/>
+      <stop offset="100%" stop-color="#FB923C"/>
+    </linearGradient>
+    <linearGradient id="flameInner" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#FBBF24"/>
+      <stop offset="100%" stop-color="#FEF08A"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(0,2)">
+    <path d="M24 40 Q6 30 12 18 Q16 8 22 3 Q24 1 24 7 Q24 1 26 3 Q32 8 36 18 Q42 30 24 40Z" fill="url(#flameOuter)"/>
+    <path d="M24 33 Q14 26 17 18 Q19 11 23 6 Q24 4 24 9 Q24 4 25 6 Q29 11 31 18 Q34 26 24 33Z" fill="url(#flameInner)" opacity="0.85"/>
+    <path d="M24 28 Q20 24 21 20 Q22 16 23 14 Q24 12 24 16 Q24 12 25 14 Q26 16 27 20 Q28 24 24 28Z" fill="#FFF7ED" opacity="0.6"/>
+    <circle cx="24" cy="19" r="2" fill="#FFFFFF" opacity="0.8"/>
+  </g>
+  <text x="44" y="33" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="26" font-weight="700" fill="#1E293B" letter-spacing="-0.5">FlarePost</text>
+</svg>

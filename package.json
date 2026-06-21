@@ -1,14 +1,14 @@
 {
-  "name": "cloud-web",
+  "name": "flarepost",
   "version": "1.0.0",
-  "description": "",
+  "description": "AI-Powered Content Platform — Deploy a full-featured CMS on Cloudflare Workers for free.",
   "main": "index.js",
   "scripts": {
     "dev": "npm run build:frontend && wrangler dev",
     "dev:remote": "npm run build:frontend && wrangler dev --remote",
     "dev:node": "concurrently \"tsx watch src/node-server.ts\" \"cd frontend && npm run dev\"",
     "build:frontend": "cd frontend && npm run build",
-    "db:init": "wrangler d1 execute info_db --local --file=./schema.sql",
+    "db:init": "wrangler d1 execute flarepost --local --file=./schema.sql",
     "deploy": "npm run build:frontend && wrangler deploy"
   },
   "keywords": [],

@@ -470,7 +470,7 @@
             <div class="space-y-1">
               <div class="text-[11px] text-slate-400 truncate">https://cloud-offers.com/post/preview-id</div>
               <div class="text-sm text-sky-400 font-medium hover:underline cursor-pointer truncate">
-                {{ form.title || '（请输入优惠标题）' }} - Cloud Offers
+                {{ form.title || '（请输入优惠标题）' }} - FlarePost
               </div>
               <div class="text-xs text-slate-400 line-clamp-2 leading-relaxed">
                 {{ cleanContentText || '填写文章优惠内容后，此处将自动抓取内容作为搜索摘要展示，利于 SEO 优化。' }}

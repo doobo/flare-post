@@ -22,7 +22,7 @@
           </button>
           <div v-if="showCategoryDropdown" class="absolute top-full left-0 mt-1 w-56 bg-white border border-slate-200 rounded-xl shadow-xl z-20 max-h-72 overflow-y-auto p-2">
             <button @click="selectCategory('')" :class="selectedCategory === '' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-600 hover:bg-slate-50'" class="w-full text-left px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">
-              All Categories
+              {{ t('all_categories') }}
             </button>
             <div class="border-t border-slate-100 my-1"></div>
             <div v-for="parent in categoriesTree" :key="parent.id">
@@ -51,7 +51,7 @@
 
         <!-- Results count -->
         <p class="text-xs text-slate-400 whitespace-nowrap">
-          <span class="font-semibold text-slate-600">{{ totalCount }}</span> {{ totalCount === 1 ? 'offer' : 'offers' }}
+          <span class="font-semibold text-slate-600">{{ totalCount }}</span> {{ totalCount === 1 ? t('offer') : t('offers') }}
         </p>
 
         <!-- Sort -->
@@ -60,22 +60,25 @@
           @change="fetchPosts()"
           class="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white text-slate-600 focus:ring-2 focus:ring-indigo-500 outline-none"
         >
-          <option value="latest">Latest</option>
-          <option value="ending_soon">Ending Soon</option>
+          <option value="latest">{{ t('sort_latest') }}</option>
+          <option value="ending_soon">{{ t('sort_ending_soon') }}</option>
         </select>
       </div>
 
       <!-- Loading: Skeleton -->
       <div v-if="loading && posts.length === 0" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div v-for="n in 4" :key="n" class="bg-white rounded-xl px-3 py-4 border border-slate-100 animate-pulse">
-          <div class="flex justify-between items-start mb-4">
-            <div class="h-5 w-20 bg-slate-200 rounded-full"></div>
-            <div class="h-4 w-16 bg-slate-200 rounded"></div>
+        <div v-for="n in 4" :key="n" class="bg-white rounded-xl border border-slate-100 overflow-hidden animate-pulse">
+          <div class="h-40 bg-slate-200"></div>
+          <div class="px-3 py-4">
+            <div class="flex justify-between items-start mb-4">
+              <div class="h-5 w-20 bg-slate-200 rounded-full"></div>
+              <div class="h-4 w-16 bg-slate-200 rounded"></div>
+            </div>
+            <div class="h-6 bg-slate-200 rounded mb-3 w-3/4"></div>
+            <div class="h-4 bg-slate-200 rounded mb-2 w-full"></div>
+            <div class="h-4 bg-slate-200 rounded mb-6 w-2/3"></div>
+            <div class="h-5 w-28 bg-slate-200 rounded"></div>
           </div>
-          <div class="h-6 bg-slate-200 rounded mb-3 w-3/4"></div>
-          <div class="h-4 bg-slate-200 rounded mb-2 w-full"></div>
-          <div class="h-4 bg-slate-200 rounded mb-6 w-2/3"></div>
-          <div class="h-5 w-28 bg-slate-200 rounded"></div>
         </div>
       </div>
 
@@ -86,16 +89,23 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
         </div>
-        <h3 class="text-xl font-medium text-slate-900 mb-1">Failed to load offers</h3>
-        <p class="text-slate-500 mb-4">Something went wrong. Please try again.</p>
+        <h3 class="text-xl font-medium text-slate-900 mb-1">{{ t('error_title') }}</h3>
+        <p class="text-slate-500 mb-4">{{ t('error_desc') }}</p>
         <button @click="fetchPosts()" class="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
-          Retry
+          {{ t('retry') }}
         </button>
       </div>
 
       <!-- Post Cards -->
       <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div v-for="post in posts" :key="post.id" class="bg-white rounded-xl px-3 py-4 shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 group flex flex-col transform hover:-translate-y-0.5">
+        <div v-for="post in posts" :key="post.id" class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 group flex flex-col transform hover:-translate-y-0.5 overflow-hidden">
+          <!-- Card Image -->
+          <div class="h-40 overflow-hidden bg-slate-100">
+            <img :src="getCategoryImage(post.category)" :alt="post.title"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              @error="handleImgError" />
+          </div>
+          <div class="px-3 py-4 flex flex-col flex-1">
           <!-- Top Row: Discount Badge + Category + Countdown -->
           <div class="flex items-center gap-2 mb-3 flex-wrap">
             <span v-if="post.discount" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
@@ -105,10 +115,10 @@
               {{ post.category }}
             </span>
             <span v-if="post.remainingDays !== undefined && post.remainingDays > 0" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 ml-auto">
-              ⏳ {{ post.remainingDays }}d left
+              ⏳ {{ t('days_left', { d: post.remainingDays }) }}
             </span>
             <span v-else-if="post.remainingDays !== undefined && post.remainingDays <= 0" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 ml-auto">
-              Expired
+              {{ t('expired') }}
             </span>
           </div>
 
@@ -120,16 +130,18 @@
           <!-- Excerpt (with search highlight) -->
           <p class="text-sm text-slate-600 line-clamp-3 mb-4 flex-grow" v-html="highlightText(getPreviewText(post))"></p>
 
-          <!-- Bottom: CTA -->
-          <div class="mt-auto">
+          <!-- Bottom: CTA + Date -->
+          <div class="mt-auto flex items-center justify-between">
             <router-link :to="'/post/' + post.id" class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 transition-all group-hover:shadow-md">
-              Read details
+              {{ t('read_details') }}
               <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
             </router-link>
+            <span class="text-xs text-slate-400">{{ formatDate(post.created_at) }}</span>
           </div>
-        </div>
+          </div>
+          </div>
 
         <!-- Empty State -->
         <div v-if="posts.length === 0 && !loading" class="col-span-full text-center py-16">
@@ -138,10 +150,10 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          <h3 class="text-xl font-medium text-slate-900 mb-1">No offers found</h3>
-          <p class="text-slate-500">Try different keywords or browse all categories.</p>
-          <button @click="searchQuery = ''; selectedCategory = ''; activeParent = ''; selectedCategoryLabel = 'All Categories'; fetchPosts()" class="mt-4 text-indigo-600 text-sm font-medium hover:text-indigo-700 transition-colors">
-            Clear all filters
+          <h3 class="text-xl font-medium text-slate-900 mb-1">{{ t('empty_title') }}</h3>
+          <p class="text-slate-500">{{ t('empty_desc') }}</p>
+          <button @click="searchQuery = ''; selectedCategory = ''; activeParent = ''; selectedCategoryLabel = t('all_categories'); fetchPosts()" class="mt-4 text-indigo-600 text-sm font-medium hover:text-indigo-700 transition-colors">
+            {{ t('clear_filters') }}
           </button>
         </div>
       </div>
@@ -149,7 +161,7 @@
       <!-- Load More -->
       <div v-if="hasMore && !loading" class="text-center mt-8">
         <button @click="loadMore" class="px-6 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
-          Load more offers
+          {{ t('load_more') }}
         </button>
       </div>
       <div v-if="loading && posts.length > 0" class="text-center mt-8">
@@ -157,40 +169,52 @@
       </div>
     </div>
 
-    <!-- Floating category button (bottom right) -->
+    <!-- Floating action button (bottom right) -->
     <div class="fixed bottom-6 right-6 z-30 category-fab">
-      <button @click="showFabMenu = !showFabMenu" class="w-12 h-12 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-all flex items-center justify-center">
+      <button @click="showFabMenu = !showFabMenu" class="w-11 h-11 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-all flex items-center justify-center">
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
 
-      <!-- Floating category panel -->
+      <!-- Floating panel -->
       <Transition name="scale">
-        <div v-if="showFabMenu" class="absolute bottom-16 right-0 w-64 bg-white border border-slate-200 rounded-2xl shadow-2xl max-h-80 overflow-y-auto p-3">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Categories</span>
-            <button @click="showFabMenu = false" class="p-0.5 rounded hover:bg-slate-100 text-slate-400">
+        <div v-if="showFabMenu" class="absolute bottom-14 right-0 w-56 bg-white border border-slate-200 rounded-2xl shadow-2xl p-2">
+          <!-- Toolbar row -->
+          <div class="flex gap-1 mb-1">
+            <button @click="scrollToTop" class="flex-1 flex items-center justify-center py-2 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-indigo-600 transition-colors" :title="t('back_to_top')">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+              </svg>
+            </button>
+            <button @click="openQRCode" class="flex-1 flex items-center justify-center py-2 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-indigo-600 transition-colors" :title="t('qr_title')">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
               </svg>
             </button>
           </div>
+
+          <div class="border-t border-slate-100 my-1"></div>
+
+          <!-- Categories header -->
+          <div class="flex items-center justify-between px-3 py-1">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ t('categories') }}</span>
+          </div>
+
           <button
             @click="selectCategoryFab('')"
             :class="selectedCategory === '' && activeParent === '' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-600 hover:bg-slate-50'"
             class="w-full text-left px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
           >
-            All Categories
+            {{ t('all_categories') }}
           </button>
-          <div class="border-t border-slate-100 my-1.5"></div>
-          <div v-for="parent in categoriesTree" :key="parent.id" class="mb-1">
+          <div v-for="parent in categoriesTree" :key="parent.id" class="mt-0.5">
             <div class="px-3 py-0.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ parent.name }}</div>
             <button
               v-for="child in parent.children" :key="child.id"
               @click="selectCategoryFab(child.label)"
               :class="selectedCategory === child.label ? 'text-indigo-600 bg-indigo-50' : 'text-slate-600 hover:bg-slate-50'"
-              class="w-full text-left px-3 py-1.5 pl-6 rounded-lg text-sm transition-colors"
+              class="w-full text-left px-3 py-1 pl-6 rounded-lg text-sm transition-colors"
             >
               {{ child.name }}
             </button>
@@ -198,7 +222,7 @@
               v-if="!parent.children || parent.children.length === 0"
               @click="selectCategoryFab(parent.label)"
               :class="selectedCategory === parent.label ? 'text-indigo-600 bg-indigo-50' : 'text-slate-600 hover:bg-slate-50'"
-              class="w-full text-left px-3 py-1.5 pl-6 rounded-lg text-sm transition-colors"
+              class="w-full text-left px-3 py-1 pl-6 rounded-lg text-sm transition-colors"
             >
               {{ parent.name }}
             </button>
@@ -206,13 +230,37 @@
         </div>
       </Transition>
     </div>
+
+    <!-- QR Code Modal -->
+    <Transition name="fade">
+      <div v-if="showQRModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" @click="closeQRCode">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 w-80 mx-4" @click.stop>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-bold text-slate-800">{{ t('qr_title') }}</h3>
+            <button @click="closeQRCode" class="p-1 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div class="flex justify-center mb-4">
+            <img v-if="qrCodeDataUrl" :src="qrCodeDataUrl" alt="QR Code" class="w-48 h-48" />
+            <div v-else class="w-48 h-48 flex items-center justify-center bg-slate-50 rounded-xl">
+              <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+            </div>
+          </div>
+          <p class="text-xs text-slate-500 text-center break-all">{{ qrUrl }}</p>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import NavBar from '@/components/NavBar.vue'
+import QRCode from 'qrcode'
 
 interface Post {
   id: number
@@ -232,6 +280,7 @@ interface CategoryNode {
   children: CategoryNode[]
 }
 
+import { t } from '@/utils/i18n'
 import { parseFrontmatter } from '@/utils/frontmatter'
 
 const posts = ref<Post[]>([])
@@ -239,11 +288,14 @@ const loading = ref(false)
 const error = ref(false)
 const route = useRoute()
 const searchQuery = ref((route.query.q as string) || '')
-const selectedCategory = ref((route.query.category as string) || '')
-const selectedCategoryLabel = ref(selectedCategory.value || 'All Categories')
+const selectedCategory = ref('')
+const activeParent = ref((route.query.category as string) || '')
+const selectedCategoryLabel = ref(activeParent.value || t('all_categories'))
 const showCategoryDropdown = ref(false)
 const showFabMenu = ref(false)
-const activeParent = ref('')
+const showQRModal = ref(false)
+const qrCodeDataUrl = ref('')
+const qrUrl = ref('')
 const categoriesTree = ref<CategoryNode[]>([])
 const sortBy = ref('latest')
 const page = ref(1)
@@ -280,6 +332,15 @@ const calcRemainingDays = (contentMd: string): number | undefined => {
   const now = new Date()
   const diff = end.getTime() - now.getTime()
   return Math.ceil(diff / (1000 * 60 * 60 * 24))
+}
+
+const formatDate = (dateStr: string): string => {
+  const d = new Date(dateStr)
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  const hours = String(d.getHours()).padStart(2, '0')
+  const mins = String(d.getMinutes()).padStart(2, '0')
+  return `${month}-${day} ${hours}:${mins}`
 }
 
 let fetchedAllPosts: Post[] = []
@@ -346,13 +407,13 @@ const loadMore = () => {
 const onSelectParent = (name: string) => {
   activeParent.value = name
   selectedCategory.value = ''
-  selectedCategoryLabel.value = 'All Categories'
+  selectedCategoryLabel.value = t('all_categories')
   filterPostsClientSide()
 }
 
 const selectCategory = (label: string) => {
   selectedCategory.value = label
-  selectedCategoryLabel.value = label || 'All Categories'
+  selectedCategoryLabel.value = label || t('all_categories')
   activeParent.value = ''
   showCategoryDropdown.value = false
   filterPostsClientSide()
@@ -361,9 +422,34 @@ const selectCategory = (label: string) => {
 const selectCategoryFab = (label: string) => {
   showFabMenu.value = false
   selectedCategory.value = label
-  selectedCategoryLabel.value = label || 'All Categories'
+  selectedCategoryLabel.value = label || t('all_categories')
   activeParent.value = ''
   filterPostsClientSide()
+}
+
+const scrollToTop = () => {
+  showFabMenu.value = false
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const openQRCode = async () => {
+  showFabMenu.value = false
+  showQRModal.value = true
+  qrUrl.value = window.location.href
+  try {
+    qrCodeDataUrl.value = await QRCode.toDataURL(window.location.href, {
+      width: 384,
+      margin: 2,
+      color: { dark: '#1E293B', light: '#FFFFFF' }
+    })
+  } catch {
+    qrCodeDataUrl.value = ''
+  }
+}
+
+const closeQRCode = () => {
+  showQRModal.value = false
+  qrCodeDataUrl.value = ''
 }
 
 const highlightText = (text: string): string => {
@@ -371,6 +457,24 @@ const highlightText = (text: string): string => {
   const q = searchQuery.value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const regex = new RegExp(`(${q})`, 'gi')
   return text.replace(regex, '<mark class="bg-yellow-200 text-slate-900 rounded px-0.5">$1</mark>')
+}
+
+const getCategoryImage = (category: string): string => {
+  const cat = category.toLowerCase()
+  if (cat.includes('vps') || cat.includes('虚拟机') || cat.includes('kvm') || cat.includes('vmware')) return '/images/vps.svg'
+  if (cat.includes('vpn')) return '/images/vpn.svg'
+  if (cat.includes('域名') || cat.includes('domain') || cat.includes('dns') || cat.includes('注册商')) return '/images/domain.svg'
+  if (cat.includes('服务器') || cat.includes('server')) return '/images/server.svg'
+  if (cat.includes('网络') || cat.includes('network')) return '/images/network.svg'
+  if (cat.includes('安全') || cat.includes('security') || cat.includes('lock')) return '/images/security.svg'
+  return '/images/default.svg'
+}
+
+const handleImgError = (e: Event) => {
+  const img = e.target as HTMLImageElement
+  if (img.src && !img.src.includes('/images/default.svg')) {
+    img.src = '/images/default.svg'
+  }
 }
 
 const buildCategoryTree = (list: any[], parentId: number, parentName = ''): any[] => {
@@ -410,8 +514,16 @@ watch(searchQuery, () => {
 
 watch(() => route.query, (query) => {
   searchQuery.value = (query.q as string) || ''
-  selectedCategory.value = (query.category as string) || ''
-  selectedCategoryLabel.value = selectedCategory.value || 'All Categories'
+  const cat = (query.category as string) || ''
+  if (cat) {
+    activeParent.value = cat
+    selectedCategory.value = ''
+  } else {
+    activeParent.value = ''
+    selectedCategory.value = ''
+  }
+  selectedCategoryLabel.value = activeParent.value || t('all_categories')
+  filterPostsClientSide()
 })
 
 let searchTimer: ReturnType<typeof setTimeout> | null = null
@@ -427,9 +539,19 @@ const closeDropdown = (e: MouseEvent) => {
 }
 
 onMounted(() => {
+  const cat = route.query.category as string | undefined
+  if (cat) {
+    activeParent.value = cat
+    selectedCategory.value = ''
+    selectedCategoryLabel.value = cat
+  }
   fetchPosts()
   fetchCategories()
   document.addEventListener('click', closeDropdown)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeDropdown)
 })
 </script>
 
