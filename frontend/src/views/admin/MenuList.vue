@@ -3,10 +3,10 @@
     <div class="w-full">
       <!-- Header: Title + Breadcrumbs + Search + Add Button -->
       <div class="mb-5 flex flex-wrap items-center gap-2">
-        <h1 class="text-xl font-bold text-slate-800">Menu Configuration</h1>
+        <h1 class="text-xl font-bold text-slate-800">{{ t('admin_menu_title') }}</h1>
         <!-- Breadcrumbs Path -->
         <nav class="flex items-center gap-1 text-xs text-slate-500 bg-slate-100/80 px-2.5 py-1.5 rounded-lg border border-slate-200/50">
-          <button @click="navigateToBreadcrumb(-1)" class="hover:text-indigo-600 font-medium transition-colors">Root</button>
+          <button @click="navigateToBreadcrumb(-1)" class="hover:text-indigo-600 font-medium transition-colors">{{ t('admin_menu_root') }}</button>
           <template v-for="(crumb, idx) in breadcrumbs" :key="crumb.id">
             <svg class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
@@ -20,14 +20,14 @@
           <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
-          <input v-model="searchQuery" type="text" class="w-44 pl-8 pr-2.5 py-1.5 text-xs border border-slate-200 rounded-lg bg-white text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" placeholder="Search menus..." />
+          <input v-model="searchQuery" type="text" class="w-44 pl-8 pr-2.5 py-1.5 text-xs border border-slate-200 rounded-lg bg-white text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all" :placeholder="t('admin_menu_search')" />
         </div>
-        <span v-if="searchQuery" class="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full font-semibold">Global</span>
+        <span v-if="searchQuery" class="text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full font-semibold">{{ t('admin_menu_global') }}</span>
         <button @click="openAddModal" class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors">
           <svg class="mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
-          Add
+          {{ t('admin_menu_add') }}
         </button>
       </div>
 
@@ -40,13 +40,13 @@
         <table v-else class="min-w-full divide-y divide-slate-200">
           <thead class="bg-slate-50">
             <tr>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Menu Name</th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Menu Key</th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Route Path</th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Hidden</th>
-              <th scope="col" class="px-6 py-4 class-right text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ t('admin_menu_th_name') }}</th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ t('admin_menu_th_key') }}</th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ t('admin_menu_th_type') }}</th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ t('admin_menu_th_path') }}</th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ t('admin_menu_th_status') }}</th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ t('admin_menu_th_hidden') }}</th>
+              <th scope="col" class="px-6 py-4 class-right text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">{{ t('admin_menu_th_actions') }}</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-slate-200">
@@ -86,23 +86,23 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <span :class="item.status === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
-                  {{ item.status === 1 ? 'Active' : 'Disabled' }}
+                  {{ item.status === 1 ? t('admin_menu_status_active') : t('admin_menu_status_disabled') }}
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                {{ item.hidden === 1 ? 'Hidden' : 'Visible' }}
+                {{ item.hidden === 1 ? t('admin_menu_hidden_yes') : t('admin_menu_hidden_no') }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <button v-if="item.type === 'directory' || item.type === 'menu'" @click="drillDown(item)" class="text-indigo-600 hover:text-indigo-900 mr-4 font-semibold">
-                  View Children
+                  {{ t('admin_menu_view_children') }}
                 </button>
-                <button @click="openEditModal(item)" class="text-slate-600 hover:text-slate-900 mr-4">Edit</button>
-                <button @click="deleteItem(item.id)" class="text-red-600 hover:text-red-900">Delete</button>
+                <button @click="openEditModal(item)" class="text-slate-600 hover:text-slate-900 mr-4">{{ t('admin_menu_edit') }}</button>
+                <button @click="deleteItem(item.id)" class="text-red-600 hover:text-red-900">{{ t('admin_menu_delete') }}</button>
               </td>
             </tr>
             <tr v-if="items.length === 0">
               <td colspan="7" class="px-6 py-10 text-center text-slate-400 text-sm">
-                No menus found under this directory level.
+                {{ t('admin_menu_empty') }}
               </td>
             </tr>
           </tbody>
@@ -123,62 +123,62 @@
             <form @submit.prevent="saveItem">
               <div class="px-6 py-6 sm:p-8">
                 <h3 class="text-xl font-semibold text-slate-900 mb-1" id="modal-title">
-                  {{ isEditing ? 'Edit Menu Item' : 'Add Menu Item' }}
+                  {{ isEditing ? t('admin_menu_modal_edit') : t('admin_menu_modal_add') }}
                 </h3>
                 <p class="text-xs text-slate-400 mb-6">
-                  Parent Menu Level: <span class="font-semibold text-slate-600">{{ currentParentName }}</span>
+                  {{ t('admin_menu_parent_level') }} <span class="font-semibold text-slate-600">{{ currentParentName }}</span>
                 </p>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Menu Name (Display)</label>
-                    <input v-model="form.menu_name" type="text" required class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" placeholder="e.g. System Audit" />
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_menu_form_name') }}</label>
+                    <input v-model="form.menu_name" type="text" required class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" :placeholder="t('admin_menu_ph_name')" />
                   </div>
                   
                   <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Menu Key (Unique Key)</label>
-                    <input v-model="form.menu_key" type="text" required class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm font-mono" placeholder="e.g. system_audit" />
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_menu_form_key') }}</label>
+                    <input v-model="form.menu_key" type="text" required class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm font-mono" :placeholder="t('admin_menu_ph_key')" />
                   </div>
 
                   <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Menu Type</label>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_menu_form_type') }}</label>
                     <select v-model="form.type" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow bg-white text-sm">
-                      <option value="directory">Directory (Folder)</option>
-                      <option value="menu">Menu (Page Link)</option>
-                      <option value="button">Button (Action / Permission)</option>
+                      <option value="directory">{{ t('admin_menu_type_directory_label') }}</option>
+                      <option value="menu">{{ t('admin_menu_type_menu_label') }}</option>
+                      <option value="button">{{ t('admin_menu_type_button_label') }}</option>
                     </select>
                   </div>
 
                   <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Sort Order (Weight)</label>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_menu_form_sort') }}</label>
                     <input v-model.number="form.sort" type="number" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" placeholder="0" />
                   </div>
 
                   <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Is External Link?</label>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_menu_form_external') }}</label>
                     <select v-model.number="form.is_external" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow bg-white text-sm">
-                      <option :value="0">No (Internal SPA Route)</option>
-                      <option :value="1">Yes (External Link)</option>
+                      <option :value="0">{{ t('admin_menu_external_no') }}</option>
+                      <option :value="1">{{ t('admin_menu_external_yes') }}</option>
                     </select>
                   </div>
 
                   <div v-if="form.is_external === 0">
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Route Path</label>
-                    <input v-model="form.path" type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" placeholder="e.g. /admin/audit" />
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_menu_form_path') }}</label>
+                    <input v-model="form.path" type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" :placeholder="t('admin_menu_ph_path')" />
                   </div>
 
                   <div v-else>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">External URL</label>
-                    <input v-model="form.url" type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" placeholder="e.g. https://google.com" />
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_menu_form_url') }}</label>
+                    <input v-model="form.url" type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" :placeholder="t('admin_menu_ph_url')" />
                   </div>
 
                   <div v-if="form.is_external === 0">
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Component Path</label>
-                    <input v-model="form.component" type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" placeholder="e.g. ./views/admin/Audit.vue" />
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_menu_form_component') }}</label>
+                    <input v-model="form.component" type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" :placeholder="t('admin_menu_ph_component')" />
                   </div>
 
                   <div class="icon-picker-container relative">
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Icon Class</label>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_menu_form_icon') }}</label>
                     <div class="relative">
                       <!-- Selected Icon Preview -->
                       <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -195,7 +195,7 @@
                         type="text" 
                         @focus="showIconDropdown = true"
                         class="w-full pl-12 pr-10 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm font-mono" 
-                        placeholder="Select or enter icon name" 
+                        :placeholder="t('admin_menu_form_icon')" 
                       />
                       
                       <!-- Toggle Button -->
@@ -221,7 +221,7 @@
                           v-model="iconSearchQuery" 
                           type="text" 
                           class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-500" 
-                          placeholder="Search RemixIcon..." 
+                          :placeholder="t('admin_menu_icon_search')" 
                         />
                         <button 
                           v-if="iconSearchQuery"
@@ -229,7 +229,7 @@
                           type="button" 
                           class="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 text-xs font-semibold"
                         >
-                          Clear
+                          {{ t('admin_menu_icon_clear') }}
                         </button>
                       </div>
 
@@ -240,9 +240,9 @@
                           type="button"
                           @click="selectIcon('')"
                           class="flex flex-col items-center justify-center p-2 rounded-lg border border-transparent hover:bg-white hover:border-slate-200 hover:shadow-sm transition-all group min-h-[44px]"
-                          title="No Icon"
+                          :title="t('admin_menu_icon_none')"
                         >
-                          <span class="text-slate-400 text-[10px] font-medium group-hover:text-slate-600">None</span>
+                          <span class="text-slate-400 text-[10px] font-medium group-hover:text-slate-600">{{ t('admin_menu_icon_none') }}</span>
                         </button>
                         
                         <button 
@@ -261,71 +261,71 @@
                       
                       <!-- Footer info / No icons found -->
                       <div class="mt-2.5 text-center text-[10px] text-slate-400 flex justify-between items-center border-t border-slate-100 pt-2 px-1">
-                        <span>Showing {{ filteredIcons.length }} of {{ REMIX_ICONS.length }}</span>
-                        <button type="button" @click="showIconDropdown = false" class="text-indigo-600 hover:text-indigo-800 font-semibold">Close</button>
+                        <span>{{ t('admin_menu_icon_showing', { n: filteredIcons.length, total: REMIX_ICONS.length }) }}</span>
+                        <button type="button" @click="showIconDropdown = false" class="text-indigo-600 hover:text-indigo-800 font-semibold">{{ t('admin_menu_icon_close') }}</button>
                       </div>
                     </div>
                   </div>
 
                   <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Target</label>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_menu_form_target') }}</label>
                     <select v-model="form.target" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow bg-white text-sm">
-                      <option value="_self">_self (Same window)</option>
-                      <option value="_blank">_blank (New tab)</option>
+                      <option value="_self">{{ t('admin_menu_target_self') }}</option>
+                      <option value="_blank">{{ t('admin_menu_target_blank') }}</option>
                     </select>
                   </div>
 
                   <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Permission Code</label>
-                    <input v-model="form.permission" type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" placeholder="e.g. sys:audit:list" />
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_menu_form_permission') }}</label>
+                    <input v-model="form.permission" type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" :placeholder="t('admin_menu_ph_permission')" />
                   </div>
 
                   <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Status</label>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_menu_form_status') }}</label>
                     <select v-model.number="form.status" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow bg-white text-sm">
-                      <option :value="1">Enabled (Active)</option>
-                      <option :value="0">Disabled</option>
+                      <option :value="1">{{ t('admin_menu_status_enabled') }}</option>
+                      <option :value="0">{{ t('admin_menu_status_disabled_label') }}</option>
                     </select>
                   </div>
 
                   <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Hidden in Sidebar?</label>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_menu_form_hidden') }}</label>
                     <select v-model.number="form.hidden" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow bg-white text-sm">
-                      <option :value="0">No (Show in Sidebar)</option>
-                      <option :value="1">Yes (Hide in Sidebar)</option>
+                      <option :value="0">{{ t('admin_menu_hidden_no_label') }}</option>
+                      <option :value="1">{{ t('admin_menu_hidden_yes_label') }}</option>
                     </select>
                   </div>
 
                   <div v-if="form.is_external === 0">
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Redirect Path</label>
-                    <input v-model="form.redirect" type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" placeholder="e.g. /admin/audit/list" />
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_menu_form_redirect') }}</label>
+                    <input v-model="form.redirect" type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" :placeholder="t('admin_menu_ph_path')" />
                   </div>
 
                   <div v-if="form.is_external === 0">
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Keep Alive (Cache)?</label>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_menu_form_keep_alive') }}</label>
                     <select v-model.number="form.keep_alive" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow bg-white text-sm">
-                      <option :value="0">No Cache</option>
-                      <option :value="1">Keep Alive Enabled</option>
+                      <option :value="0">{{ t('admin_menu_cache_no') }}</option>
+                      <option :value="1">{{ t('admin_menu_cache_yes') }}</option>
                     </select>
                   </div>
 
                   <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Custom CSS Class</label>
-                    <input v-model="form.class_name" type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" placeholder="e.g. text-indigo-400 font-bold" />
+                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_menu_form_css') }}</label>
+                    <input v-model="form.class_name" type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" :placeholder="t('admin_menu_ph_css')" />
                   </div>
                 </div>
               </div>
               
               <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
                 <button type="button" @click="closeModal" class="w-full sm:w-auto px-6 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 text-sm">
-                  Cancel
+                  {{ t('admin_menu_cancel') }}
                 </button>
                 <button type="submit" :disabled="saving" class="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-60 flex items-center justify-center text-sm">
                   <svg v-if="saving" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  {{ saving ? 'Saving...' : 'Save Item' }}
+                  {{ saving ? t('admin_menu_saving') : t('admin_menu_save') }}
                 </button>
               </div>
             </form>
@@ -341,6 +341,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast } from '@/utils/toast'
 import { showConfirm } from '@/utils/confirm'
+import { t } from '@/utils/i18n'
 
 const router = useRouter()
 
@@ -567,18 +568,18 @@ const saveItem = async () => {
       handleAuthError()
     } else {
       const data = await res.json()
-      showToast('Error: ' + (data.error || 'Failed to save menu'), 'error')
+      showToast(t('admin_menu_save_error') + ': ' + (data.error || ''), 'error')
     }
   } catch (e) {
     console.error(e)
-    showToast('Network error', 'error')
+    showToast(t('admin_menu_network_error'), 'error')
   } finally {
     saving.value = false
   }
 }
 
 const deleteItem = async (id: number) => {
-  if (!await showConfirm('Are you sure you want to delete this menu item? Doing so will also delete all submenus recursively.')) return
+  if (!await showConfirm(t('admin_menu_delete_confirm'))) return
 
   const token = localStorage.getItem('adminToken')
   try {

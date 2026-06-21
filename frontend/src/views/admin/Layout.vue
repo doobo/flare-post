@@ -147,11 +147,11 @@
             <svg :class="isCollapsed ? 'mr-0' : 'mr-2'" class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
-            <span v-show="!isCollapsed" class="transition-opacity duration-300">View Site</span>
+            <span v-show="!isCollapsed" class="transition-opacity duration-300">{{ t('admin_view_site') }}</span>
           </router-link>
           <!-- Tooltip for View Site -->
           <div v-if="isCollapsed" class="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-slate-950 text-xs text-white rounded hidden group-hover/tooltip:block whitespace-nowrap z-50 shadow-lg">
-            View Site
+            {{ t('admin_view_site') }}
           </div>
         </div>
         
@@ -160,11 +160,11 @@
             <svg :class="isCollapsed ? 'mr-0' : 'mr-2'" class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
-            <span v-show="!isCollapsed" class="transition-opacity duration-300">Logout</span>
+            <span v-show="!isCollapsed" class="transition-opacity duration-300">{{ t('admin_logout') }}</span>
           </button>
           <!-- Tooltip for Logout -->
           <div v-if="isCollapsed" class="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 bg-slate-950 text-xs text-white rounded hidden group-hover/tooltip:block whitespace-nowrap z-50 shadow-lg">
-            Logout
+            {{ t('admin_logout') }}
           </div>
         </div>
       </div>
@@ -176,7 +176,7 @@
       <header class="bg-white border-b border-slate-100 h-16 flex items-center justify-between pl-0 pr-6 shrink-0 shadow-sm z-10">
         <!-- Left: Page Title / Breadcrumb -->
         <div class="flex items-center space-x-4">
-          <button @click="toggleSidebar" class="p-1 rounded cursor-pointer" :title="isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'">
+          <button @click="toggleSidebar" class="p-1 rounded cursor-pointer" :title="isCollapsed ? t('admin_expand_sidebar') : t('admin_collapse_sidebar')">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="isCollapsed ? 'M9 5l7 7-7 7' : 'M15 19l-7-7 7-7'" />
             </svg>
@@ -194,10 +194,10 @@
             </div>
             <div class="text-left hidden sm:block">
               <div class="text-xs font-semibold text-slate-700">{{ userInfo.username }}</div>
-              <div class="text-[10px] text-slate-400">{{ userInfo.email || 'No email' }}</div>
+              <div class="text-[10px] text-slate-400">{{ userInfo.email || t('admin_no_email') }}</div>
             </div>
           </div>
-          <button @click="toggleFullscreen" class="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer" :title="isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'">
+          <button @click="toggleFullscreen" class="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer" :title="isFullscreen ? t('admin_exit_fullscreen') : t('admin_fullscreen')">
             <svg v-if="!isFullscreen" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8V3m0 0h5M3 3l6 6m12 0V3m0 0h-5m5 0l-6 6M3 16v5m0 0h5m-5 0l6-6m12 5v-5m0 5h-5m5 0l-6-6" />
             </svg>
@@ -205,7 +205,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V3m0 0L3 9m6-6l6 6m0 0v6m0 0l6-6m-6 6H9" />
             </svg>
           </button>
-          <button @click="logout" class="p-2 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer" title="Logout">
+          <button @click="logout" class="p-2 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer" :title="t('admin_logout')">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
@@ -245,6 +245,7 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
 import { ref, onMounted, onUnmounted, h, computed, watch } from 'vue'
+import { t } from '@/utils/i18n'
 
 const router = useRouter()
 const route = useRoute()
@@ -299,12 +300,12 @@ const addTab = (toRoute: any) => {
   
   // Find menu name matching the route path
   let name = ''
-  if (path === '/admin') name = 'Publish'
-  else if (path === '/admin/list') name = 'Offers'
-  else if (path === '/admin/users') name = 'Users'
-  else if (path === '/admin/dictionaries') name = 'Dictionaries'
-  else if (path === '/admin/menus') name = 'Menus'
-  else name = toRoute.meta?.title || 'Admin Page'
+  if (path === '/admin') name = t('admin_tab_publish')
+  else if (path === '/admin/list') name = t('admin_tab_offers')
+  else if (path === '/admin/users') name = t('admin_tab_users')
+  else if (path === '/admin/dictionaries') name = t('admin_tab_dictionaries')
+  else if (path === '/admin/menus') name = t('admin_tab_menus')
+  else name = toRoute.meta?.title || t('admin_tab_page')
 
   const exists = tabs.value.some(t => t.path === path)
   if (!exists) {
@@ -335,12 +336,12 @@ watch(() => route.path, () => {
 
 const currentMenuName = computed(() => {
   const path = route.path
-  if (path === '/admin') return 'Publish Offer'
-  if (path === '/admin/list') return 'Manage Offers'
-  if (path === '/admin/users') return 'Manage Users'
-  if (path === '/admin/dictionaries') return 'Manage Dictionaries'
-  if (path === '/admin/menus') return 'Manage Menus'
-  return 'Admin Dashboard'
+  if (path === '/admin') return t('admin_cur_publish')
+  if (path === '/admin/list') return t('admin_cur_offers')
+  if (path === '/admin/users') return t('admin_cur_users')
+  if (path === '/admin/dictionaries') return t('admin_cur_dictionaries')
+  if (path === '/admin/menus') return t('admin_cur_menus')
+  return t('admin_cur_dashboard')
 })
 
 const toggleMenu = (id: number) => {

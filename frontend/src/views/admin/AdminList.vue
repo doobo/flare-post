@@ -2,7 +2,7 @@
   <div class="p-6 overflow-y-auto h-full flex-1">
     <div class="w-full">
       <div class="mb-5 flex items-center gap-3 flex-wrap">
-        <h1 class="text-xl font-bold text-slate-800">Manage Offers</h1>
+        <h1 class="text-xl font-bold text-slate-800">{{ t('admin_offers_title') }}</h1>
         <div class="flex-1"></div>
         <div class="relative">
           <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -11,7 +11,7 @@
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="Search offers..."
+            :placeholder="t('admin_offers_search')"
             class="w-56 pl-9 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-white text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
           />
         </div>
@@ -25,10 +25,10 @@
         <table v-else class="min-w-full divide-y divide-slate-200">
           <thead class="bg-slate-50">
             <tr>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Title</th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Category</th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
-              <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ t('admin_offers_th_title') }}</th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ t('admin_offers_th_category') }}</th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ t('admin_offers_th_date') }}</th>
+              <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ t('admin_offers_th_actions') }}</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-slate-200">
@@ -45,14 +45,14 @@
                 {{ new Date(post.created_at).toLocaleDateString() }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <a :href="'/post/' + post.id" target="_blank" class="text-indigo-600 hover:text-indigo-900 mr-4">View</a>
-                <router-link :to="'/admin?id=' + post.id" class="text-indigo-600 hover:text-indigo-900 mr-4">Edit</router-link>
-                <button @click="deletePost(post.id)" class="text-red-600 hover:text-red-900">Delete</button>
+                <a :href="'/post/' + post.id" target="_blank" class="text-indigo-600 hover:text-indigo-900 mr-4">{{ t('admin_offers_view') }}</a>
+                <router-link :to="'/admin?id=' + post.id" class="text-indigo-600 hover:text-indigo-900 mr-4">{{ t('admin_offers_edit') }}</router-link>
+                <button @click="deletePost(post.id)" class="text-red-600 hover:text-red-900">{{ t('admin_offers_delete') }}</button>
               </td>
             </tr>
             <tr v-if="filteredPosts.length === 0">
               <td colspan="4" class="px-6 py-8 text-center text-slate-500 text-sm">
-                {{ searchQuery ? 'No offers match your search.' : 'No offers found. Start by publishing a new offer.' }}
+                {{ searchQuery ? t('admin_offers_empty_search') : t('admin_offers_empty') }}
               </td>
             </tr>
           </tbody>
@@ -67,6 +67,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast } from '@/utils/toast'
 import { showConfirm } from '@/utils/confirm'
+import { t } from '@/utils/i18n'
 
 const router = useRouter()
 const posts = ref<any[]>([])
@@ -97,7 +98,7 @@ const fetchPosts = async () => {
 }
 
 const deletePost = async (id: number) => {
-  if (!await showConfirm('Are you sure you want to delete this offer?')) return
+  if (!await showConfirm(t('admin_offers_delete_confirm'))) return
 
   const token = localStorage.getItem('adminToken')
   if (!token) {
@@ -119,11 +120,11 @@ const deletePost = async (id: number) => {
       localStorage.removeItem('adminToken')
       router.push('/admin/login')
     } else {
-      showToast('Failed to delete post.', 'error')
+      showToast(t('admin_offers_delete_error'), 'error')
     }
   } catch (e) {
     console.error(e)
-    showToast('Error connecting to server.', 'error')
+    showToast(t('admin_offers_network_error'), 'error')
   }
 }
 

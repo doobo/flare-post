@@ -18,8 +18,8 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <h3 class="text-lg font-medium text-slate-900">Post not found</h3>
-        <p class="mt-2 text-sm text-slate-500">The offer you're looking for doesn't exist or has been removed.</p>
+        <h3 class="text-lg font-medium text-slate-900">{{ t('detail_not_found') }}</h3>
+        <p class="mt-2 text-sm text-slate-500">{{ t('detail_not_found_desc') }}</p>
       </div>
       <div v-else>
         <div class="py-6">
@@ -41,7 +41,7 @@
           <div v-if="metadata.discount_strength" class="flex-1 min-w-[200px] bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-center space-x-3">
             <span class="text-2xl">💰</span>
             <div>
-              <div class="text-[10px] uppercase font-bold text-emerald-600 tracking-wider">Price</div>
+              <div class="text-[10px] uppercase font-bold text-emerald-600 tracking-wider">{{ t('detail_price') }}</div>
               <div class="text-base font-bold text-slate-800">{{ metadata.discount_strength }}</div>
             </div>
           </div>
@@ -49,22 +49,22 @@
             <div class="flex items-center space-x-3">
               <span class="text-2xl">🏷️</span>
               <div>
-                <div class="text-[10px] uppercase font-bold text-indigo-600 tracking-wider">Promo Code</div>
+                <div class="text-[10px] uppercase font-bold text-indigo-600 tracking-wider">{{ t('detail_promo_code') }}</div>
                 <div class="text-base font-mono font-bold text-indigo-800">{{ metadata.promo_code }}</div>
               </div>
             </div>
-            <button @click="copyPromoCode" class="px-2.5 py-1.5 text-xs font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 active:scale-95 transition-all cursor-pointer">
-              Copy
+            <button @click="copyPromoCode" class="px-2 py-1 text-[10px] font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 active:scale-95 transition-all cursor-pointer leading-none">
+              {{ t('detail_copy') }}
             </button>
           </div>
           <div v-if="metadata.start_date || metadata.end_date" class="flex-1 min-w-[200px] bg-amber-50 border border-amber-100 rounded-xl p-4 flex items-center space-x-3">
             <span class="text-2xl">📅</span>
             <div>
-              <div class="text-[10px] uppercase font-bold text-amber-600 tracking-wider">Validity</div>
+              <div class="text-[10px] uppercase font-bold text-amber-600 tracking-wider">{{ t('detail_validity') }}</div>
               <div class="text-xs text-slate-700">
-                <div v-if="metadata.start_date">Start: {{ formatDate(metadata.start_date) }}</div>
-                <div v-if="metadata.end_date">End: {{ formatDate(metadata.end_date) }}</div>
-                <div v-else class="font-medium text-amber-800">Always valid</div>
+                <div v-if="metadata.start_date">{{ t('detail_start', { date: formatDate(metadata.start_date) }) }}</div>
+                <div v-if="metadata.end_date">{{ t('detail_end', { date: formatDate(metadata.end_date) }) }}</div>
+                <div v-else class="font-medium text-amber-800">{{ t('detail_always_valid') }}</div>
               </div>
             </div>
           </div>
@@ -83,6 +83,7 @@ import MarkdownIt from 'markdown-it'
 import NavBar from '@/components/NavBar.vue'
 import { parseFrontmatter, type ContentMetadata } from '@/utils/frontmatter'
 import { showToast } from '@/utils/toast'
+import { t } from '@/utils/i18n'
 
 const route = useRoute()
 const router = useRouter()
@@ -178,10 +179,22 @@ const hasMetadata = computed(() => {
   return !!(meta.promo_code || meta.start_date || meta.end_date || meta.discount_strength)
 })
 
-const copyPromoCode = () => {
+const copyPromoCode = async () => {
   if (metadata.value.promo_code) {
-    navigator.clipboard.writeText(metadata.value.promo_code)
-    showToast('Promo code copied!', 'success')
+    try {
+      await navigator.clipboard.writeText(metadata.value.promo_code)
+      showToast(t('detail_copied'), 'success')
+    } catch {
+      const ta = document.createElement('textarea')
+      ta.value = metadata.value.promo_code
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+      showToast(t('detail_copied'), 'success')
+    }
   }
 }
 

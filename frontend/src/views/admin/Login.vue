@@ -3,16 +3,16 @@
     <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl border border-slate-100">
       <div>
         <h2 class="mt-2 text-center text-3xl font-extrabold text-slate-900 tracking-tight">
-          Admin Login
+          {{ t('admin_login_title') }}
         </h2>
         <p class="mt-2 text-center text-sm text-slate-500">
-          Sign in to manage your offers
+          {{ t('admin_login_subtitle') }}
         </p>
       </div>
       <form class="mt-8 space-y-6" @submit.prevent="handleLogin">
         <div class="space-y-4">
           <div>
-            <label for="username" class="sr-only">Username</label>
+            <label for="username" class="sr-only">{{ t('admin_login_username') }}</label>
             <input 
               id="username" 
               name="username" 
@@ -20,11 +20,11 @@
               required 
               v-model="username"
               class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-slate-300 placeholder-slate-400 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors" 
-              placeholder="Username" 
+              :placeholder="t('admin_login_username')" 
             />
           </div>
           <div>
-            <label for="password" class="sr-only">Password</label>
+            <label for="password" class="sr-only">{{ t('admin_login_password') }}</label>
             <input 
               id="password" 
               name="password" 
@@ -32,7 +32,7 @@
               required 
               v-model="password"
               class="appearance-none rounded-xl relative block w-full px-4 py-3 border border-slate-300 placeholder-slate-400 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors" 
-              placeholder="Password" 
+              :placeholder="t('admin_login_password')" 
             />
           </div>
         </div>
@@ -51,13 +51,13 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            {{ loading ? 'Signing in...' : 'Sign in' }}
+            {{ loading ? t('admin_login_signing_in') : t('admin_login_sign_in') }}
           </button>
         </div>
         
         <div class="text-center mt-4">
           <router-link to="/" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
-            &larr; Back to Home
+            {{ t('admin_login_back_home') }}
           </router-link>
         </div>
       </form>
@@ -69,6 +69,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { encryptPassword } from '@/utils/crypto'
+import { t } from '@/utils/i18n'
 
 const router = useRouter()
 const username = ref('')
@@ -97,11 +98,11 @@ const handleLogin = async () => {
       localStorage.setItem('adminToken', data.token)
       router.push('/admin')
     } else {
-      error.value = data.error || 'Invalid credentials'
+      error.value = data.error || t('admin_login_invalid')
     }
   } catch (e: any) {
     console.error(e)
-    error.value = e.message || 'Failed to connect to server'
+    error.value = e.message || t('admin_login_failed')
   } finally {
     loading.value = false
   }

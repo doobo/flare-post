@@ -3,8 +3,8 @@
     <!-- Page Header -->
     <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between shrink-0">
       <div class="flex items-baseline space-x-2">
-        <h1 class="text-xl font-bold text-slate-800">{{ isEditing ? '编辑优惠' : '发布新优惠' }}</h1>
-        <span class="text-xs text-slate-400 hidden sm:inline">— 填写以下信息，即可发布新的优惠活动。</span>
+        <h1 class="text-xl font-bold text-slate-800">{{ isEditing ? t('admin_post_edit') : t('admin_post_create') }}</h1>
+        <span class="text-xs text-slate-400 hidden sm:inline">{{ t('admin_post_subtitle') }}</span>
       </div>
       <div class="flex items-center space-x-2 mt-2 sm:mt-0">
         <!-- Toggle Preview Button -->
@@ -14,10 +14,10 @@
           :class="showPreview ? 'bg-indigo-50 border-indigo-200 text-indigo-700 font-semibold' : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'"
           class="px-3 py-1.5 border text-xs rounded-lg transition-all cursor-pointer flex items-center space-x-1"
         >
-          <span>{{ showPreview ? '👁️ 收起预览' : '👁️ 展开预览' }}</span>
+          <span>{{ showPreview ? '👁️ ' + t('admin_post_toggle_preview') : '👁️ ' + t('admin_post_toggle_preview_on') }}</span>
         </button>
         <button type="button" @click="saveDraft(true)" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all cursor-pointer">
-          保存草稿
+          {{ t('admin_post_save_draft') }}
         </button>
       </div>
     </div>
@@ -30,7 +30,7 @@
           <div :class="currentStep >= 1 ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-100 text-slate-400'" class="w-7 h-7 rounded-full flex items-center justify-center text-xs transition-all">
             1
           </div>
-          <span :class="currentStep === 1 ? 'text-indigo-600 font-semibold text-sm' : 'text-slate-500 text-sm'">基本信息</span>
+          <span :class="currentStep === 1 ? 'text-indigo-600 font-semibold text-sm' : 'text-slate-500 text-sm'">{{ t('admin_post_step1') }}</span>
         </button>
         <div class="flex-1 h-px bg-slate-200"></div>
         <!-- Step 2 -->
@@ -38,7 +38,7 @@
           <div :class="currentStep >= 2 ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-100 text-slate-400'" class="w-7 h-7 rounded-full flex items-center justify-center text-xs transition-all">
             2
           </div>
-          <span :class="currentStep === 2 ? 'text-indigo-600 font-semibold text-sm' : 'text-slate-500 text-sm'">优惠详情</span>
+          <span :class="currentStep === 2 ? 'text-indigo-600 font-semibold text-sm' : 'text-slate-500 text-sm'">{{ t('admin_post_step2') }}</span>
         </button>
         <div class="flex-1 h-px bg-slate-200"></div>
         <!-- Step 3 -->
@@ -46,7 +46,7 @@
           <div :class="currentStep === 3 ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-100 text-slate-400'" class="w-7 h-7 rounded-full flex items-center justify-center text-xs transition-all">
             3
           </div>
-          <span :class="currentStep === 3 ? 'text-indigo-600 font-semibold text-sm' : 'text-slate-500 text-sm'">预览发布</span>
+          <span :class="currentStep === 3 ? 'text-indigo-600 font-semibold text-sm' : 'text-slate-500 text-sm'">{{ t('admin_post_step3') }}</span>
         </button>
       </div>
     </div>
@@ -58,12 +58,12 @@
         <div class="space-y-6">
           <!-- STEP 1: Basic Info -->
           <div v-show="currentStep === 1" class="space-y-5">
-            <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide border-b border-slate-100 pb-2">基本信息</h2>
+            <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide border-b border-slate-100 pb-2">{{ t('admin_post_basic_info') }}</h2>
             
             <!-- Title -->
             <div>
               <div class="flex justify-between items-center mb-1">
-                <label class="block text-xs font-bold text-slate-700 uppercase">优惠标题 <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-bold text-slate-700 uppercase">{{ t('admin_post_title') }} <span class="text-red-500">*</span></label>
                 <span :class="form.title.length > 90 ? 'text-red-500 font-semibold' : 'text-slate-400'" class="text-[10px] font-mono">
                   {{ form.title.length }} / 90
                 </span>
@@ -75,14 +75,14 @@
                 @blur="validateField('title')"
                 class="w-full px-3.5 py-2 border rounded-lg outline-none text-sm transition-all"
                 :class="errors.title ? 'border-red-300 focus:ring-2 focus:ring-red-100' : 'border-slate-300 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500'" 
-                placeholder="例如：50% Off VPS Hosting - 限时3天" 
+                :placeholder="t('admin_post_title_ph')" 
               />
               <p v-if="errors.title" class="text-red-500 text-xs mt-1">{{ errors.title }}</p>
             </div>
 
             <!-- Category -->
             <div class="relative category-select-container">
-              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">分类 <span class="text-red-500">*</span></label>
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">{{ t('admin_post_category') }} <span class="text-red-500">*</span></label>
               <button 
                 type="button" 
                 @click="showCategoryDropdown = !showCategoryDropdown"
@@ -90,7 +90,7 @@
                 :class="errors.category ? 'border-red-300' : 'border-slate-300 focus:ring-2 focus:ring-indigo-100'"
               >
                 <span :class="form.category ? 'text-slate-700 font-medium' : 'text-slate-400'">
-                  {{ form.category || '请选择分类...' }}
+                  {{ form.category || t('admin_post_category_ph') }}
                 </span>
                 <svg class="h-4 w-4 text-slate-400 transition-transform duration-200" :class="showCategoryDropdown ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -131,7 +131,7 @@
 
             <!-- Tags Input Component -->
             <div>
-              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">标签</label>
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">{{ t('admin_post_tags') }}</label>
               <div class="border border-slate-300 rounded-lg p-2 bg-white flex flex-wrap gap-1.5 items-center min-h-[42px] focus-within:ring-2 focus-within:ring-indigo-100 focus-within:border-indigo-500 transition-all">
                 <span 
                   v-for="(tag, index) in tagsList" 
@@ -149,14 +149,14 @@
                   @keydown.enter.prevent="addTag"
                   @keydown.comma.prevent="addTag"
                   @keydown.backspace="handleTagBackspace"
-                  placeholder="输入标签并回车..."
+                  :placeholder="t('admin_post_tags_ph')"
                   class="flex-1 bg-transparent border-0 outline-none text-xs p-0.5 min-w-[100px]"
                 />
               </div>
 
               <!-- Hot Tags -->
               <div class="mt-2.5 flex flex-wrap items-center gap-1.5">
-                <span class="text-[10px] text-slate-400 font-semibold mr-1">热门标签:</span>
+                <span class="text-[10px] text-slate-400 font-semibold mr-1">{{ t('admin_post_hot_tags') }}</span>
                 <button 
                   v-for="ht in hotTags" 
                   :key="ht"
@@ -172,35 +172,35 @@
 
           <!-- STEP 2: Offer Details & Editor -->
           <div v-show="currentStep === 2" class="space-y-5">
-            <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide border-b border-slate-100 pb-2">优惠详情</h2>
+            <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide border-b border-slate-100 pb-2">{{ t('admin_post_details') }}</h2>
 
             <!-- Extra metadata inputs -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <!-- Discount Strength -->
               <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">折扣力度 / 价格</label>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">{{ t('admin_post_discount') }}</label>
                 <input 
                   v-model="discountStrength" 
                   type="text" 
                   class="w-full px-3.5 py-2 border border-slate-300 rounded-lg outline-none text-xs focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition-all" 
-                  placeholder="例如：50% OFF 或 $5/mo" 
+                  :placeholder="t('admin_post_discount_ph')" 
                 />
               </div>
 
               <!-- Promo Code -->
               <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">优惠码</label>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">{{ t('admin_post_promo_code') }}</label>
                 <div class="flex space-x-2">
                   <input 
                     v-model="promoCode" 
                     type="text" 
-                    class="flex-1 px-3.5 py-2 border border-slate-300 rounded-lg outline-none text-xs focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition-all font-mono uppercase" 
-                    placeholder="如：OFFER50" 
+                    class="flex-1 px-3.5 py-2 border border-slate-300 rounded-lg outline-none text-xs focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition-all font-mono" 
+                    :placeholder="t('admin_post_promo_ph')" 
                   />
                   <!-- Toggle Code visibility -->
                   <div class="flex items-center space-x-1.5 border border-slate-200 rounded-lg px-2 bg-slate-50">
                     <input type="checkbox" id="show_promo" v-model="showPromoCode" class="w-3.5 h-3.5 text-indigo-600 focus:ring-indigo-500 border-slate-300 rounded" />
-                    <label for="show_promo" class="text-[10px] font-semibold text-slate-500 select-none cursor-pointer">公开</label>
+                    <label for="show_promo" class="text-[10px] font-semibold text-slate-500 select-none cursor-pointer">{{ t('admin_post_promo_public') }}</label>
                   </div>
                 </div>
               </div>
@@ -209,23 +209,23 @@
             <!-- Date Picker for validity -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">生效时间</label>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">{{ t('admin_post_start_date') }}</label>
                 <input v-model="startDate" type="datetime-local" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-100" />
               </div>
               <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">截止时间</label>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">{{ t('admin_post_end_date') }}</label>
                 <input v-model="endDate" type="datetime-local" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-100" />
               </div>
             </div>
 
             <!-- Date Presets -->
             <div class="flex flex-wrap items-center gap-1.5">
-              <span class="text-[10px] text-slate-400 font-semibold mr-1">截止时间:</span>
-              <button type="button" @click="setEndDatePreset(1)" class="px-2 py-0.5 rounded border border-slate-200 hover:border-indigo-500 text-slate-500 hover:text-indigo-600 text-[10px] transition-all cursor-pointer">1天后</button>
-              <button type="button" @click="setEndDatePreset(3)" class="px-2 py-0.5 rounded border border-slate-200 hover:border-indigo-500 text-slate-500 hover:text-indigo-600 text-[10px] transition-all cursor-pointer">3天后</button>
-              <button type="button" @click="setEndDatePreset(7)" class="px-2 py-0.5 rounded border border-slate-200 hover:border-indigo-500 text-slate-500 hover:text-indigo-600 text-[10px] transition-all cursor-pointer">7天后</button>
-              <button type="button" @click="setEndDatePreset(30)" class="px-2 py-0.5 rounded border border-slate-200 hover:border-indigo-500 text-slate-500 hover:text-indigo-600 text-[10px] transition-all cursor-pointer">1月后</button>
-              <button type="button" @click="setEndDatePreset(0)" class="px-2 py-0.5 rounded border border-slate-200 hover:border-indigo-500 text-slate-500 hover:text-indigo-600 text-[10px] transition-all cursor-pointer">永久有效</button>
+              <span class="text-[10px] text-slate-400 font-semibold mr-1">{{ t('admin_post_end_date_label') }}</span>
+              <button type="button" @click="setEndDatePreset(1)" class="px-2 py-0.5 rounded border border-slate-200 hover:border-indigo-500 text-slate-500 hover:text-indigo-600 text-[10px] transition-all cursor-pointer">{{ t('admin_post_1day') }}</button>
+              <button type="button" @click="setEndDatePreset(3)" class="px-2 py-0.5 rounded border border-slate-200 hover:border-indigo-500 text-slate-500 hover:text-indigo-600 text-[10px] transition-all cursor-pointer">{{ t('admin_post_3days') }}</button>
+              <button type="button" @click="setEndDatePreset(7)" class="px-2 py-0.5 rounded border border-slate-200 hover:border-indigo-500 text-slate-500 hover:text-indigo-600 text-[10px] transition-all cursor-pointer">{{ t('admin_post_7days') }}</button>
+              <button type="button" @click="setEndDatePreset(30)" class="px-2 py-0.5 rounded border border-slate-200 hover:border-indigo-500 text-slate-500 hover:text-indigo-600 text-[10px] transition-all cursor-pointer">{{ t('admin_post_1month') }}</button>
+              <button type="button" @click="setEndDatePreset(0)" class="px-2 py-0.5 rounded border border-slate-200 hover:border-indigo-500 text-slate-500 hover:text-indigo-600 text-[10px] transition-all cursor-pointer">{{ t('admin_post_forever') }}</button>
               
               <!-- Custom Days Input -->
               <div class="flex items-center space-x-1 border border-slate-200 rounded px-1.5 py-0.5 bg-slate-50">
@@ -238,7 +238,7 @@
                   @change="applyCustomDays"
                   class="w-8 border-0 bg-transparent text-[10px] font-semibold text-slate-600 text-center focus:ring-0 outline-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
-                <span class="text-[9px] text-slate-400 font-medium">天后</span>
+                <span class="text-[9px] text-slate-400 font-medium">{{ t('admin_post_days_later') }}</span>
               </div>
             </div>
 
@@ -253,7 +253,7 @@
                     :class="form.content_type === 'markdown' ? 'bg-white text-indigo-600 font-semibold shadow-sm' : 'text-slate-600 hover:text-slate-800'"
                     class="px-2.5 py-0.5 text-[10px] rounded transition-all font-medium"
                   >
-                    Markdown
+                    {{ t('admin_post_markdown') }}
                   </button>
                   <button 
                     type="button" 
@@ -261,24 +261,24 @@
                     :class="form.content_type === 'richtext' ? 'bg-white text-indigo-600 font-semibold shadow-sm' : 'text-slate-600 hover:text-slate-800'"
                     class="px-2.5 py-0.5 text-[10px] rounded transition-all font-medium"
                   >
-                    富文本
+                    {{ t('admin_post_richtext') }}
                   </button>
                 </div>
 
                 <!-- Toolbar -->
                 <div class="flex items-center space-x-1">
-                  <button type="button" @click="insertFormatting('h1')" class="px-1.5 py-0.5 rounded hover:bg-slate-200 text-slate-600 text-[10px] font-bold">H1</button>
-                  <button type="button" @click="insertFormatting('h2')" class="px-1.5 py-0.5 rounded hover:bg-slate-200 text-slate-600 text-[10px] font-bold">H2</button>
-                  <button type="button" @click="insertFormatting('bold')" class="px-1.5 py-0.5 rounded hover:bg-slate-200 text-slate-600 text-[10px] font-bold">B</button>
-                  <button type="button" @click="insertFormatting('italic')" class="px-1.5 py-0.5 rounded hover:bg-slate-200 text-slate-600 text-[10px] italic font-bold">I</button>
-                  <button type="button" @click="insertFormatting('link')" class="px-1.5 py-0.5 rounded hover:bg-slate-200 text-slate-600 text-[10px] font-bold">链接</button>
+                  <button type="button" @click="insertFormatting('h1')" class="px-1.5 py-0.5 rounded hover:bg-slate-200 text-slate-600 text-[10px] font-bold">{{ t('admin_post_h1') }}</button>
+                  <button type="button" @click="insertFormatting('h2')" class="px-1.5 py-0.5 rounded hover:bg-slate-200 text-slate-600 text-[10px] font-bold">{{ t('admin_post_h2') }}</button>
+                  <button type="button" @click="insertFormatting('bold')" class="px-1.5 py-0.5 rounded hover:bg-slate-200 text-slate-600 text-[10px] font-bold">{{ t('admin_post_bold') }}</button>
+                  <button type="button" @click="insertFormatting('italic')" class="px-1.5 py-0.5 rounded hover:bg-slate-200 text-slate-600 text-[10px] italic font-bold">{{ t('admin_post_italic') }}</button>
+                  <button type="button" @click="insertFormatting('link')" class="px-1.5 py-0.5 rounded hover:bg-slate-200 text-slate-600 text-[10px] font-bold">{{ t('admin_post_link') }}</button>
                   <button type="button" @click="triggerImageUpload" :disabled="uploadingImage" class="px-1.5 py-0.5 rounded hover:bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center gap-0.5">
                     <svg v-if="uploadingImage" class="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                     <svg v-else class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                    图片
+                    {{ t('admin_post_image') }}
                   </button>
                   <input ref="imageInputRef" type="file" accept="image/jpeg,image/png,image/gif,image/webp,image/avif,image/bmp" class="hidden" @change="onImageSelected" />
                 </div>
@@ -292,7 +292,7 @@
                   ref="markdownTextareaRef"
                   @blur="validateField('content')"
                   class="w-full p-3 border-x border-b border-slate-200 rounded-b-lg outline-none font-mono text-xs resize-none bg-slate-50/20 h-56 focus:ring-2 focus:ring-indigo-100" 
-                  placeholder="请在此输入 Markdown 优惠说明详情..."
+                  :placeholder="t('admin_post_content_ph_md')"
                 ></textarea>
                 <div 
                   v-else
@@ -301,14 +301,14 @@
                   @input="onRichInput"
                   @blur="validateField('content')"
                   class="w-full p-4 border-x border-b border-slate-200 rounded-b-lg outline-none overflow-auto prose prose-indigo max-w-none text-xs bg-slate-50/20 h-56 focus:ring-2 focus:ring-indigo-100"
-                  placeholder="开始编写富文本..."
+                  :placeholder="t('admin_post_content_ph_rt')"
                 ></div>
                 <p v-if="errors.content" class="text-red-500 text-xs mt-1">{{ errors.content }}</p>
               </div>
 
               <!-- Stats & Alerts -->
               <div class="mt-2 flex items-center justify-between text-[10px] text-slate-400 font-medium px-1">
-                <span>字数统计: <span class="font-bold text-slate-600">{{ wordCount }}</span> 字</span>
+                <span>{{ t('admin_post_word_count', { n: wordCount }) }}</span>
                 <span :class="wordCountTip.type === 'error' ? 'text-red-500' : 'text-slate-400'">
                   {{ wordCountTip.msg }}
                 </span>
@@ -318,22 +318,22 @@
 
           <!-- STEP 3: Preview and Publish -->
           <div v-show="currentStep === 3" class="space-y-4">
-            <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide border-b border-slate-100 pb-2">检查并发布</h2>
+            <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide border-b border-slate-100 pb-2">{{ t('admin_post_check_publish') }}</h2>
             <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-xs text-indigo-800 space-y-2">
               <div class="font-bold flex items-center">
-                <span>📢 发布准备就绪</span>
+                <span>📢 {{ t('admin_post_ready') }}</span>
               </div>
-              <p>请在右侧检查卡片和页面的显示情况。如有问题，可以返回之前的步骤进行修改。</p>
+              <p>{{ t('admin_post_ready_desc') }}</p>
             </div>
             
             <div class="space-y-3 pt-2">
-              <div class="text-xs font-bold text-slate-700">信息确认清单</div>
+              <div class="text-xs font-bold text-slate-700">{{ t('admin_post_checklist') }}</div>
               <ul class="text-xs text-slate-600 space-y-1.5 list-disc pl-4">
-                <li>标题长度: <span class="font-semibold text-slate-800">{{ form.title.length }} 字符</span></li>
-                <li>所属分类: <span class="font-semibold text-slate-800">{{ form.category || '未选择' }}</span></li>
-                <li>标签个数: <span class="font-semibold text-slate-800">{{ tagsList.length }} 个</span></li>
-                <li>优惠额度: <span class="font-semibold text-slate-800">{{ discountStrength || '未设置' }}</span></li>
-                <li>优惠码: <span class="font-semibold text-slate-800">{{ promoCode || '无' }}</span></li>
+                <li>{{ t('admin_post_check_title', { n: form.title.length }) }}</li>
+                <li>{{ t('admin_post_check_category', { name: form.category || t('admin_post_not_selected') }) }}</li>
+                <li>{{ t('admin_post_check_tags', { n: tagsList.length }) }}</li>
+                <li>{{ t('admin_post_check_discount', { name: discountStrength || t('admin_post_not_set') }) }}</li>
+                <li>{{ t('admin_post_check_promo', { name: promoCode || t('admin_post_none') }) }}</li>
               </ul>
             </div>
           </div>
@@ -347,7 +347,7 @@
             @click="goToStep(currentStep - 1)" 
             class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
           >
-            上一步
+            {{ t('admin_post_step_prev') }}
           </button>
           <div v-show="currentStep === 1"></div>
           
@@ -357,7 +357,7 @@
             @click="goToStep(currentStep + 1)" 
             class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer ml-auto"
           >
-            下一步
+            {{ t('admin_post_step_next') }}
           </button>
           <button 
             type="button" 
@@ -370,7 +370,7 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            {{ submitting ? '正在发布...' : (isEditing ? '保存修改' : '确认发布') }}
+            {{ submitting ? t('admin_post_publishing') : (isEditing ? t('admin_post_save_changes') : t('admin_post_confirm_publish')) }}
           </button>
         </div>
       </div>
@@ -386,7 +386,7 @@
               class="p-1 rounded text-xs cursor-pointer flex items-center space-x-1" 
               title="Desktop"
             >
-              <span>🖥️</span> <span class="text-[9px] font-bold">桌面</span>
+              <span>🖥️</span> <span class="text-[9px] font-bold">{{ t('admin_post_desktop') }}</span>
             </button>
             <button 
               @click="previewDevice = 'tablet'" 
@@ -394,7 +394,7 @@
               class="p-1 rounded text-xs cursor-pointer flex items-center space-x-1" 
               title="Tablet"
             >
-              <span>📱</span> <span class="text-[9px] font-bold">平板</span>
+              <span>📱</span> <span class="text-[9px] font-bold">{{ t('admin_post_tablet') }}</span>
             </button>
             <button 
               @click="previewDevice = 'mobile'" 
@@ -402,10 +402,10 @@
               class="p-1 rounded text-xs cursor-pointer flex items-center space-x-1" 
               title="Mobile"
             >
-              <span>📲</span> <span class="text-[9px] font-bold">手机</span>
+              <span>📲</span> <span class="text-[9px] font-bold">{{ t('admin_post_mobile') }}</span>
             </button>
           </div>
-          <span class="text-[10px] text-slate-500 font-bold">🔍 优惠实时模拟预览</span>
+          <span class="text-[10px] text-slate-500 font-bold">🔍 {{ t('admin_post_preview_device') }}</span>
         </div>
 
         <!-- Scrollable Preview Workspace -->
@@ -418,12 +418,12 @@
             <div class="p-6 border-b border-slate-100 bg-slate-50/50">
               <div class="flex items-center gap-2 mb-3">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700 uppercase">
-                  {{ form.category || '未分类' }}
+                  {{ form.category || t('admin_post_uncategorized') }}
                 </span>
-                <span class="text-[10px] text-slate-400 font-medium">刚刚</span>
+                <span class="text-[10px] text-slate-400 font-medium">{{ t('admin_post_just_now') }}</span>
               </div>
               <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight leading-tight highlight-title">
-                {{ form.title || '（未命名标题）' }}
+                {{ form.title || t('admin_post_unnamed') }}
               </h1>
             </div>
 
@@ -432,7 +432,7 @@
               <div v-if="discountStrength" class="flex-1 min-w-[140px] bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex items-center space-x-2.5 shadow-sm highlight-discount">
                 <span class="text-xl">💰</span>
                 <div>
-                  <div class="text-[8px] uppercase font-bold text-emerald-600 tracking-wider">优惠额度</div>
+                  <div class="text-[8px] uppercase font-bold text-emerald-600 tracking-wider">{{ t('admin_post_discount_label') }}</div>
                   <div class="text-xs font-bold text-slate-800">{{ discountStrength }}</div>
                 </div>
               </div>
@@ -440,7 +440,7 @@
                 <div class="flex items-center space-x-2.5">
                   <span class="text-xl">🏷️</span>
                   <div>
-                    <div class="text-[8px] uppercase font-bold text-indigo-600 tracking-wider">优惠码</div>
+                    <div class="text-[8px] uppercase font-bold text-indigo-600 tracking-wider">{{ t('admin_post_promo_label') }}</div>
                     <div class="text-xs font-mono font-bold text-indigo-800">{{ promoCode }}</div>
                   </div>
                 </div>
@@ -448,11 +448,11 @@
               <div v-if="startDate || endDate" class="flex-1 min-w-[140px] bg-amber-50 border border-amber-100 rounded-xl p-3 flex items-center space-x-2.5 shadow-sm highlight-date">
                 <span class="text-xl">📅</span>
                 <div>
-                  <div class="text-[8px] uppercase font-bold text-amber-600 tracking-wider">有效期</div>
+                  <div class="text-[8px] uppercase font-bold text-amber-600 tracking-wider">{{ t('admin_post_validity') }}</div>
                   <div class="text-[10px] text-slate-700">
-                    <div v-if="startDate" class="scale-90 origin-left">始: {{ formatDate(startDate) }}</div>
-                    <div v-if="endDate" class="scale-90 origin-left">止: {{ formatDate(endDate) }}</div>
-                    <div v-else class="font-medium text-amber-800 text-[10px]">长期有效</div>
+                    <div v-if="startDate" class="scale-90 origin-left">{{ t('admin_post_start', { date: formatDate(startDate) }) }}</div>
+                    <div v-if="endDate" class="scale-90 origin-left">{{ t('admin_post_end', { date: formatDate(endDate) }) }}</div>
+                    <div v-else class="font-medium text-amber-800 text-[10px]">{{ t('admin_post_forever_valid') }}</div>
                   </div>
                 </div>
               </div>
@@ -466,14 +466,14 @@
 
           <!-- Google SEO Preview Mock -->
           <div class="w-full mt-6 bg-slate-900 border border-slate-800 rounded-xl p-4">
-            <div class="text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">Google 搜索引擎展示效果预览 (SEO)</div>
+            <div class="text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">{{ t('admin_post_seo_preview') }}</div>
             <div class="space-y-1">
               <div class="text-[11px] text-slate-400 truncate">https://cloud-offers.com/post/preview-id</div>
               <div class="text-sm text-sky-400 font-medium hover:underline cursor-pointer truncate">
-                {{ form.title || '（请输入优惠标题）' }} - FlarePost
+                {{ form.title || t('admin_post_unnamed') }} - FlarePost
               </div>
               <div class="text-xs text-slate-400 line-clamp-2 leading-relaxed">
-                {{ cleanContentText || '填写文章优惠内容后，此处将自动抓取内容作为搜索摘要展示，利于 SEO 优化。' }}
+                {{ cleanContentText || t('admin_post_content_ph_md') }}
               </div>
             </div>
           </div>
@@ -487,14 +487,14 @@
         <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-emerald-100 mb-4 text-emerald-600 text-2xl">
           ✓
         </div>
-        <h3 class="text-lg font-bold text-slate-900 mb-2">优惠活动发布成功！</h3>
-        <p class="text-xs text-slate-500 mb-6">您的优惠活动已经成功推送到前台系统，并已经生成最新的 SEO 搜索信息。</p>
+        <h3 class="text-lg font-bold text-slate-900 mb-2">{{ t('admin_post_success_title') }}</h3>
+        <p class="text-xs text-slate-500 mb-6">{{ t('admin_post_success_desc') }}</p>
         <div class="flex space-y-2 sm:space-y-0 sm:space-x-3 flex-col sm:flex-row">
           <router-link to="/admin/list" class="flex-1 px-4 py-2 border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold rounded-lg transition-colors cursor-pointer text-center">
-            查看已发布优惠
+            {{ t('admin_post_view_offers') }}
           </router-link>
           <button @click="resetFormAndContinue" class="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
-            继续创建
+            {{ t('admin_post_create_another') }}
           </button>
         </div>
       </div>
@@ -506,14 +506,14 @@
         <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-amber-100 mb-4 text-amber-600 text-xl">
           ✏️
         </div>
-        <h3 class="text-lg font-bold text-slate-900 mb-2">检测到未保存的草稿</h3>
-        <p class="text-xs text-slate-500 mb-6">系统检测到您上次编辑了优惠内容但尚未发布，是否需要为您恢复草稿？</p>
+        <h3 class="text-lg font-bold text-slate-900 mb-2">{{ t('admin_post_draft_title') }}</h3>
+        <p class="text-xs text-slate-500 mb-6">{{ t('admin_post_draft_desc') }}</p>
         <div class="flex space-y-2 sm:space-y-0 sm:space-x-3 flex-col sm:flex-row">
           <button @click="discardDraft" class="flex-1 px-4 py-2 border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold rounded-lg transition-colors cursor-pointer">
-            放弃草稿
+            {{ t('admin_post_draft_discard') }}
           </button>
           <button @click="restoreDraft" class="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
-            恢复草稿
+            {{ t('admin_post_draft_restore') }}
           </button>
         </div>
       </div>
@@ -522,23 +522,23 @@
     <!-- Custom Link Insertion Modal -->
     <div v-if="showLinkModal" class="fixed inset-0 z-50 bg-slate-950/60 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
       <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 animate-scale-up">
-        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">插入超链接</h3>
+        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">{{ t('admin_post_insert_link') }}</h3>
         <div class="space-y-4 text-left">
           <div>
-            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">链接名称 (文本)</label>
-            <input v-model="linkText" type="text" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500" placeholder="如：官方网站" />
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">{{ t('admin_post_link_text') }}</label>
+            <input v-model="linkText" type="text" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500" :placeholder="t('admin_post_link_ph_text')" />
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">链接地址 (URL)</label>
-            <input v-model="linkUrl" type="text" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500" placeholder="https://" />
+            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">{{ t('admin_post_link_url') }}</label>
+            <input v-model="linkUrl" type="text" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500" :placeholder="t('admin_post_link_ph_url')" />
           </div>
         </div>
         <div class="flex space-x-3 mt-6">
           <button @click="showLinkModal = false" class="flex-1 px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold rounded-lg transition-colors cursor-pointer">
-            取消
+            {{ t('admin_post_cancel') }}
           </button>
           <button @click="confirmInsertLink" class="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
-            确定
+            {{ t('admin_post_confirm') }}
           </button>
         </div>
       </div>
@@ -553,6 +553,7 @@ import MarkdownIt from 'markdown-it'
 import { showToast } from '@/utils/toast'
 import { showConfirm } from '@/utils/confirm'
 import { parseFrontmatter, stringifyFrontmatter } from '@/utils/frontmatter'
+import { t } from '@/utils/i18n'
 
 const router = useRouter()
 const route = useRoute()
@@ -644,7 +645,8 @@ const previewWidth = computed(() => {
 
 const previewHtml = computed(() => {
   const content = form.value.content_type === 'markdown' ? form.value.content_md : form.value.content_html
-  return md.render(content || '*内容预览将在此显示*')
+  const previewPlaceholder = t('admin_post_content_ph_md')
+  return md.render(content || `*${previewPlaceholder}*`)
 })
 
 const wordCount = computed(() => {
@@ -657,10 +659,10 @@ const wordCount = computed(() => {
 
 const wordCountTip = computed(() => {
   const count = wordCount.value
-  if (count === 0) return { msg: '请填写详情内容', type: 'info' }
-  if (count < 200) return { msg: `内容偏短 (当前 ${count} 字)，建议补充至 200~500 字以利于搜索优化`, type: 'warning' }
-  if (count > 1000) return { msg: `内容偏长 (当前 ${count} 字)，建议精简信息`, type: 'info' }
-  return { msg: '内容字数合适，利于前台用户阅读与 SEO 索引', type: 'success' }
+  if (count === 0) return { msg: t('admin_post_word_tip_empty'), type: 'info' }
+  if (count < 200) return { msg: t('admin_post_word_tip_short', { n: count }), type: 'warning' }
+  if (count > 1000) return { msg: t('admin_post_word_tip_long', { n: count }), type: 'info' }
+  return { msg: t('admin_post_word_tip_good'), type: 'success' }
 })
 
 const cleanContentText = computed(() => {
@@ -726,9 +728,9 @@ const closeCategoryDropdownOnOutside = (e: MouseEvent) => {
 const validateField = (field: 'title' | 'category' | 'content') => {
   if (field === 'title') {
     if (!form.value.title.trim()) {
-      errors.value.title = '标题不能为空'
+      errors.value.title = t('admin_post_validate_title')
     } else if (form.value.title.length > 90) {
-      errors.value.title = '标题长度不能超过 90 个字符'
+      errors.value.title = t('admin_post_validate_title_length')
     } else {
       errors.value.title = ''
     }
@@ -736,7 +738,7 @@ const validateField = (field: 'title' | 'category' | 'content') => {
   
   if (field === 'category') {
     if (!form.value.category_id) {
-      errors.value.category = '请选择一个分类'
+      errors.value.category = t('admin_post_validate_category')
     } else {
       errors.value.category = ''
     }
@@ -745,7 +747,7 @@ const validateField = (field: 'title' | 'category' | 'content') => {
   if (field === 'content') {
     const content = form.value.content_type === 'markdown' ? form.value.content_md : form.value.content_html
     if (!content.trim()) {
-      errors.value.content = '内容详情不能为空'
+      errors.value.content = t('admin_post_validate_content')
     } else {
       errors.value.content = ''
     }
@@ -758,14 +760,14 @@ const goToStep = (step: number) => {
     validateField('title')
     validateField('category')
     if (errors.value.title || errors.value.category) {
-      showToast('请正确填写当前步骤必填字段', 'warning')
+      showToast(t('admin_post_validate_step'), 'warning')
       return
     }
   }
   if (step > 2 && currentStep.value === 2) {
     validateField('content')
     if (errors.value.content) {
-      showToast('请正确填写优惠详细内容', 'warning')
+      showToast(t('admin_post_validate_content_detail'), 'warning')
       return
     }
   }
@@ -823,7 +825,7 @@ const formatDate = (val: string) => {
 
 const confirmInsertLink = () => {
   showLinkModal.value = false
-  const text = linkText.value.trim() || '链接'
+  const text = linkText.value.trim() || t('admin_post_link')
   const url = linkUrl.value.trim() || 'https://'
   
   if (form.value.content_type === 'richtext') {
@@ -891,10 +893,10 @@ const insertFormatting = (type: 'h1' | 'h2' | 'bold' | 'italic' | 'link') => {
     const selected = text.substring(start, end)
     
     let replacement = ''
-    if (type === 'h1') replacement = `# ${selected || '标题'}`
-    else if (type === 'h2') replacement = `## ${selected || '子标题'}`
-    else if (type === 'bold') replacement = `**${selected || '粗体文字'}**`
-    else if (type === 'italic') replacement = `*${selected || '斜体文字'}*`
+    if (type === 'h1') replacement = `# ${selected || t('admin_post_title')}`
+    else if (type === 'h2') replacement = `## ${selected || t('admin_post_subtitle')}`
+    else if (type === 'bold') replacement = `**${selected || t('admin_post_title')}**`
+    else if (type === 'italic') replacement = `*${selected || t('admin_post_title')}*`
     
     form.value.content_md = text.substring(0, start) + replacement + text.substring(end)
     
@@ -932,7 +934,7 @@ const onImageSelected = async (e: Event) => {
     const data = await res.json()
 
     if (!res.ok) {
-      showToast(data.error || '图片上传失败', 'error')
+      showToast(data.error || t('admin_post_upload_error'), 'error')
       return
     }
 
@@ -956,9 +958,9 @@ const onImageSelected = async (e: Event) => {
         el.setSelectionRange(start + imageMd.length, start + imageMd.length)
       }, 0)
     }
-    showToast('图片上传成功', 'success')
+    showToast(t('admin_post_upload_success'), 'success')
   } catch (err) {
-    showToast('图片上传失败: 网络错误', 'error')
+    showToast(t('admin_post_upload_network_error'), 'error')
   } finally {
     uploadingImage.value = false
     target.value = ''
@@ -1028,12 +1030,12 @@ const fetchPost = async (id: string) => {
         }, 0)
       }
     } else {
-      showToast('无法加载优惠数据', 'error')
+      showToast(t('admin_post_load_failed'), 'error')
       router.push('/admin/list')
     }
   } catch (e) {
     console.error(e)
-    showToast('加载数据发生错误', 'error')
+    showToast(t('admin_post_load_error'), 'error')
   }
 }
 
@@ -1072,7 +1074,7 @@ const switchEditorMode = async (newMode: 'markdown' | 'richtext') => {
       if (richEditorRef.value) richEditorRef.value.innerHTML = htmlContent
     }, 0)
   } else {
-    if (await showConfirm('是否切换到 Markdown 编辑器？')) {
+    if (await showConfirm(t('admin_post_switch_md'))) {
       const htmlContent = richEditorRef.value ? richEditorRef.value.innerHTML : (form.value.content_html || '')
       form.value.content_md = htmlToMarkdown(htmlContent)
       form.value.content_type = 'markdown'
@@ -1111,7 +1113,7 @@ const saveDraft = (manual = false) => {
   lastSavedContent = currentContent
   
   if (manual) {
-    showToast('草稿已手动保存', 'success')
+    showToast(t('admin_post_draft_saved'), 'success')
   } else {
     showAutosaveTip.value = true
     setTimeout(() => { showAutosaveTip.value = false }, 2000)
@@ -1194,7 +1196,7 @@ const restoreDraft = () => {
         }, 0)
       }
       lastSavedContent = JSON.stringify(data)
-      showToast('草稿已成功恢复！', 'success')
+      showToast(t('admin_post_draft_restored'), 'success')
     } catch (e) {
       console.error(e)
     }
@@ -1259,7 +1261,7 @@ const submitPost = async () => {
   validateField('content')
   
   if (errors.value.title || errors.value.category || errors.value.content) {
-    showToast('基本信息或内容填写有误，请返回修改', 'warning')
+    showToast(t('admin_post_validate_step'), 'warning')
     return
   }
 
@@ -1321,12 +1323,12 @@ const submitPost = async () => {
         localStorage.removeItem('adminToken')
         router.push('/admin/login')
       } else {
-        showToast('保存失败: ' + (data.error || '位置错误'), 'error')
+        showToast(t('admin_post_save_failed', { error: data.error || '' }), 'error')
       }
     }
   } catch (e) {
     console.error(e)
-    showToast('无法连接至服务器保存数据', 'error')
+    showToast(t('admin_post_save_network_error'), 'error')
   } finally {
     submitting.value = false
   }

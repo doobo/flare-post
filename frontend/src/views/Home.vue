@@ -101,7 +101,7 @@
         <div v-for="post in posts" :key="post.id" class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 group flex flex-col transform hover:-translate-y-0.5 overflow-hidden">
           <!-- Card Image -->
           <div class="h-40 overflow-hidden bg-slate-100">
-            <img :src="getCategoryImage(post.category)" :alt="post.title"
+            <img :src="getPostImage(post)" :alt="post.title"
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               @error="handleImgError" />
           </div>
@@ -132,9 +132,9 @@
 
           <!-- Bottom: CTA + Date -->
           <div class="mt-auto flex items-center justify-between">
-            <router-link :to="'/post/' + post.id" class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 transition-all group-hover:shadow-md">
+            <router-link :to="'/post/' + post.id" class="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 text-indigo-600 text-xs font-medium rounded-lg hover:bg-indigo-100 transition-all">
               {{ t('read_details') }}
-              <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
               </svg>
             </router-link>
@@ -468,6 +468,16 @@ const getCategoryImage = (category: string): string => {
   if (cat.includes('网络') || cat.includes('network')) return '/images/network.svg'
   if (cat.includes('安全') || cat.includes('security') || cat.includes('lock')) return '/images/security.svg'
   return '/images/default.svg'
+}
+
+const getPostImage = (post: Post): string => {
+  const md = post.content_md
+  if (!md) return getCategoryImage(post.category)
+  const mdMatch = md.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/)
+  if (mdMatch) return mdMatch[1]
+  const htmlMatch = md.match(/<img[^>]+src=["'](https?:\/\/[^"']+)["']/)
+  if (htmlMatch) return htmlMatch[1]
+  return getCategoryImage(post.category)
 }
 
 const handleImgError = (e: Event) => {

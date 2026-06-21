@@ -3,14 +3,14 @@
     <div class="w-full">
       <div class="flex justify-between items-baseline mb-5">
         <div class="flex items-baseline space-x-2">
-          <h1 class="text-xl font-bold text-slate-800">Manage Users</h1>
-          <span class="text-xs text-slate-400 hidden sm:inline">— Add, edit, or remove administrator accounts.</span>
+          <h1 class="text-xl font-bold text-slate-800">{{ t('admin_users_title') }}</h1>
+          <span class="text-xs text-slate-400 hidden sm:inline">{{ t('admin_users_subtitle') }}</span>
         </div>
         <button @click="openAddModal" class="inline-flex items-center self-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
           <svg class="mr-1 h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
-          Add User
+          {{ t('admin_users_add') }}
         </button>
       </div>
 
@@ -22,11 +22,11 @@
         <table v-else class="min-w-full divide-y divide-slate-200">
           <thead class="bg-slate-50">
             <tr>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Username</th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Email</th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Role</th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created At</th>
-              <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ t('admin_users_th_username') }}</th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ t('admin_users_th_email') }}</th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ t('admin_users_th_role') }}</th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ t('admin_users_th_created') }}</th>
+              <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ t('admin_users_th_actions') }}</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-slate-200">
@@ -46,13 +46,13 @@
                 {{ new Date(user.created_at).toLocaleDateString() }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button @click="openEditModal(user)" class="text-indigo-600 hover:text-indigo-900 mr-4">Edit</button>
-                <button @click="deleteUser(user.id)" class="text-red-600 hover:text-red-900">Delete</button>
+                <button @click="openEditModal(user)" class="text-indigo-600 hover:text-indigo-900 mr-4">{{ t('admin_users_edit') }}</button>
+                <button @click="deleteUser(user.id)" class="text-red-600 hover:text-red-900">{{ t('admin_users_delete') }}</button>
               </td>
             </tr>
             <tr v-if="users.length === 0">
               <td colspan="5" class="px-6 py-8 text-center text-slate-500 text-sm">
-                No users found.
+                {{ t('admin_users_empty') }}
               </td>
             </tr>
           </tbody>
@@ -73,34 +73,34 @@
             <form @submit.prevent="saveUser">
               <div class="px-6 py-6 sm:p-8">
                 <h3 class="text-xl font-semibold text-slate-900 mb-6" id="modal-title">
-                {{ isEditing ? 'Edit User' : 'Add New User' }}
+                {{ isEditing ? t('admin_users_modal_edit') : t('admin_users_modal_add') }}
               </h3>
               
               <div class="space-y-5">
                 <div>
-                  <label class="block text-sm font-medium text-slate-700 mb-1">Username</label>
-                  <input v-model="form.username" type="text" required class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow" placeholder="e.g. admin" />
+                  <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_users_form_username') }}</label>
+                  <input v-model="form.username" type="text" required class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow" :placeholder="t('admin_users_ph_username')" />
                 </div>
                 
                 <div>
                   <label class="block text-sm font-medium text-slate-700 mb-1">
-                    Password 
-                    <span class="text-xs text-slate-400 font-normal" v-if="isEditing">(Leave blank to keep unchanged)</span>
+                    {{ t('admin_users_form_password') }}
+                    <span class="text-xs text-slate-400 font-normal" v-if="isEditing">{{ t('admin_users_password_unchanged') }}</span>
                   </label>
                   <input v-model="form.password" type="password" :required="!isEditing" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow" placeholder="••••••••" />
                 </div>
                 
                 <div>
-                  <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
-                  <input v-model="form.email" type="email" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow" placeholder="admin@example.com" />
+                  <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_users_form_email') }}</label>
+                  <input v-model="form.email" type="email" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow" :placeholder="t('admin_users_ph_email')" />
                 </div>
                 
                 <div>
-                  <label class="block text-sm font-medium text-slate-700 mb-1">Role</label>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_users_form_role') }}</label>
                   <div class="relative">
                     <select v-model="form.role" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none appearance-none transition-shadow bg-white">
-                      <option value="admin">Admin</option>
-                      <option value="editor">Editor</option>
+                      <option value="admin">{{ t('admin_users_role_admin') }}</option>
+                      <option value="editor">{{ t('admin_users_role_editor') }}</option>
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
                       <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -114,14 +114,14 @@
             
             <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
               <button type="button" @click="closeModal" class="w-full sm:w-auto px-6 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
-                Cancel
+                {{ t('admin_users_cancel') }}
               </button>
               <button type="submit" :disabled="saving" class="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-60 flex items-center justify-center">
                 <svg v-if="saving" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                {{ saving ? 'Saving...' : 'Save User' }}
+                {{ saving ? t('admin_users_saving') : t('admin_users_save') }}
               </button>
             </div>
           </form>
@@ -138,6 +138,7 @@ import { useRouter } from 'vue-router'
 import { showToast } from '@/utils/toast'
 import { encryptPassword } from '@/utils/crypto'
 import { showConfirm } from '@/utils/confirm'
+import { t } from '@/utils/i18n'
 
 const router = useRouter()
 const users = ref<any[]>([])
@@ -217,18 +218,18 @@ const saveUser = async () => {
       handleAuthError()
     } else {
       const data = await res.json()
-      showToast('Error: ' + (data.error || 'Failed to save user'), 'error')
+      showToast(t('admin_users_save_error') + ': ' + (data.error || ''), 'error')
     }
   } catch (e) {
     console.error(e)
-    showToast('Network error', 'error')
+    showToast(t('admin_users_network_error'), 'error')
   } finally {
     saving.value = false
   }
 }
 
 const deleteUser = async (id: number) => {
-  if (!await showConfirm('Are you sure you want to delete this user?')) return
+  if (!await showConfirm(t('admin_users_delete_confirm'))) return
 
   const token = localStorage.getItem('adminToken')
   try {
