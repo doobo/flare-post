@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { Bindings } from "../types";
 import { authMiddleware } from "../security/middleware";
-import { encryptDictValue } from "../security/crypto";
+import { encryptDictValue, decryptDictValue } from "../security/crypto";
 
 const dictionariesApi = new Hono<{ Bindings: Bindings }>();
 
@@ -72,6 +72,13 @@ dictionariesApi.put("/:id", authMiddleware, async (c) => {
           .prepare("SELECT value FROM dictionaries WHERE id = ?")
           .bind(id)
           .first<{ value: string }>();
+        if (existing?.value) {
+          try {
+            await decryptDictValue(existing.value, c.env);
+          } catch {
+            return c.json({ success: false, error: "The stored encrypted value cannot be decrypted with the current key. Please re-enter the actual value instead of '***'." }, 400);
+          }
+        }
         valToSave = existing ? existing.value : null;
       } else if (value) {
         valToSave = await encryptDictValue(value, c.env);

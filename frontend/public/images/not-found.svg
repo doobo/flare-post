@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#f1f5f9"/>
+  <rect x="275" y="180" width="250" height="250" rx="20" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="2"/>
+  <circle cx="400" cy="280" r="40" fill="#94a3b8"/>
+  <path d="M300 400 Q400 340 500 400" stroke="#94a3b8" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <text x="400" y="490" text-anchor="middle" font-family="system-ui, sans-serif" font-size="28" font-weight="700" fill="#64748b">Image Not Found</text>
+  <text x="400" y="525" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" fill="#94a3b8">The requested image does not exist or has been removed.</text>
+</svg>

@@ -1,0 +1,3 @@
+{
+  "DICT_ENCRYPTION_KEY": "{\"key_ops\":[\"encrypt\",\"decrypt\"],\"ext\":true,\"alg\":\"A256GCM\",\"kty\":\"oct\",\"k\":\"r89in_of0VZAMMaYri1uRDU6AmQh7ZWTBkM133CLurE\"}"
+}

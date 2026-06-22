@@ -118,4 +118,48 @@ INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort
 -- im.ge image hosting API key config
 INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order, description) VALUES (202, 'im.ge API Key', 'imge_api_key', '', 'encode', 0, 0, 'API key for im.ge image hosting service');
 
+-- Upload configs table
+CREATE TABLE IF NOT EXISTS upload_configs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  is_default INTEGER NOT NULL DEFAULT 0,
+  is_proxy INTEGER NOT NULL DEFAULT 0,
+  proxy_prefix TEXT,
+  storage_type TEXT NOT NULL DEFAULT 'common',
+  upload_url TEXT,
+  access_key TEXT,
+  secret_key TEXT,
+  refresh_token TEXT,
+  status INTEGER NOT NULL DEFAULT 1,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  remark TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Files table
+CREATE TABLE IF NOT EXISTS files (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  filename TEXT NOT NULL,
+  file_type TEXT,
+  file_size INTEGER,
+  mime_type TEXT,
+  original_url TEXT NOT NULL,
+  proxy_url TEXT,
+  upload_config_id INTEGER,
+  storage_type TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Default common upload config
+INSERT OR IGNORE INTO upload_configs (id, name, is_default, is_proxy, proxy_prefix, storage_type, status, sort_order, remark)
+VALUES (1, 'Default Common', 1, 1, '', 'common', 1, 0, 'System default common image storage');
+
+-- Admin menus for new pages
+INSERT OR IGNORE INTO menus (id, menu_name, menu_key, parent_id, path, type, sort, icon)
+VALUES (6, 'Upload', 'upload_configs', 0, '/admin/upload-configs', 'menu', 6, 'ri-cloud-line');
+
+INSERT OR IGNORE INTO menus (id, menu_name, menu_key, parent_id, path, type, sort, icon)
+VALUES (7, 'Files', 'manage_files', 0, '/admin/files', 'menu', 7, 'ri-file-list-line');
+
 

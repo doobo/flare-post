@@ -10,6 +10,8 @@ import AdminList from './views/admin/AdminList.vue'
 import UserList from './views/admin/UserList.vue'
 import DictList from './views/admin/DictList.vue'
 import MenuList from './views/admin/MenuList.vue'
+import UploadConfigList from './views/admin/UploadConfigList.vue'
+import FileList from './views/admin/FileList.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -23,7 +25,9 @@ const routes = [
       { path: 'list', component: AdminList },
       { path: 'users', component: UserList },
       { path: 'dictionaries', component: DictList },
-      { path: 'menus', component: MenuList }
+      { path: 'menus', component: MenuList },
+      { path: 'upload-configs', component: UploadConfigList },
+      { path: 'files', component: FileList }
     ]
   }
 ]
