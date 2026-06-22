@@ -32,7 +32,7 @@
       </div>
 
       <!-- Menu Items Table -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-x-auto">
         <div v-if="loading" class="flex justify-center py-12">
           <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
         </div>

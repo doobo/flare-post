@@ -100,21 +100,21 @@
       <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div v-for="post in posts" :key="post.id" class="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 group flex flex-col transform hover:-translate-y-0.5 overflow-hidden">
           <!-- Card Image -->
-          <div class="h-40 overflow-hidden bg-slate-100">
+          <router-link :to="'/post/' + post.id" class="h-40 overflow-hidden bg-slate-100 block">
             <img :src="getPostImage(post)" :alt="post.title"
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               @error="handleImgError" />
-          </div>
+          </router-link>
           <div class="px-3 py-4 flex flex-col flex-1">
           <!-- Top Row: Discount Badge + Category + Countdown -->
-          <div class="flex items-center gap-2 mb-3 flex-wrap">
-            <span v-if="post.discount" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
+          <div class="flex items-center gap-2 mb-3">
+            <span v-if="post.discount" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 whitespace-nowrap">
               💰 {{ post.discount }}
             </span>
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 whitespace-nowrap">
               {{ post.category }}
             </span>
-            <span v-if="post.remainingDays !== undefined && post.remainingDays > 0" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 ml-auto">
+            <span v-if="post.remainingDays !== undefined && post.remainingDays > 0" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 ml-auto whitespace-nowrap">
               ⏳ {{ t('days_left', { d: post.remainingDays }) }}
             </span>
             <span v-else-if="post.remainingDays !== undefined && post.remainingDays <= 0" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 ml-auto">
