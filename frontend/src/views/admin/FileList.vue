@@ -57,7 +57,7 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">{{ new Date(item.created_at).toLocaleDateString() }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <button @click="viewUrls(item)" class="text-indigo-600 hover:text-indigo-900 mr-4">{{ t('admin_files_view_urls') }}</button>
-                <button @click="deleteItem(item.id)" class="text-red-600 hover:text-red-900">{{ t('admin_files_delete') }}</button>
+                <button @click="deleteItem(item)" class="text-red-600 hover:text-red-900">{{ t('admin_files_delete') }}</button>
               </td>
             </tr>
             <tr v-if="!data.results || data.results.length === 0">
@@ -130,6 +130,7 @@ interface FileItem {
   mime_type: string | null
   original_url: string
   proxy_url: string | null
+  ext_config: string | null
   upload_config_id: number | null
   storage_type: string | null
   created_at: string
@@ -151,7 +152,7 @@ const typeFilter = ref('')
 let searchTimer: any = null
 
 const showUrlModal = ref(false)
-const urlItem = ref<FileItem>({ id: '', filename: '', file_type: '', file_size: 0, mime_type: '', original_url: '', proxy_url: '', upload_config_id: null, storage_type: '', created_at: '' })
+const urlItem = ref<FileItem>({ id: '', filename: '', file_type: '', file_size: 0, mime_type: '', original_url: '', proxy_url: '', ext_config: '', upload_config_id: null, storage_type: '', created_at: '' })
 
 const fetchItems = async () => {
   loading.value = true
@@ -241,17 +242,25 @@ const onImgError = (e: Event) => {
   img.style.display = 'none'
 }
 
-const deleteItem = async (id: string) => {
+const deleteItem = async (item: FileItem) => {
   const confirmed = await showConfirm('Delete this file record?')
   if (!confirmed) return
   const token = localStorage.getItem('adminToken')
+  let deleteUrl: string | undefined
+  if (item.ext_config) {
+    try {
+      const cfg = JSON.parse(item.ext_config)
+      deleteUrl = cfg.delete_url
+    } catch {}
+  }
   try {
-    const res = await fetch(`/api/files/${id}`, {
+    const res = await fetch(`/api/files/${item.id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     })
     if (!res.ok) { showToast('Delete failed', 'error'); return }
     showToast('File deleted', 'success')
+    if (deleteUrl) window.open(deleteUrl, '_blank')
     fetchItems()
   } catch (e) {
     showToast('Network error', 'error')

@@ -1,4 +1,4 @@
-import { IStorageAdapter, StorageConfig, UploadResult } from "./interface";
+import { IStorageAdapter, StorageConfig, UploadResult, FileRecord } from "./interface";
 
 async function hmacSha256(key: Uint8Array, message: string): Promise<Uint8Array> {
   const cryptoKey = await crypto.subtle.importKey(
@@ -55,6 +55,19 @@ async function awsSign(
   return headers;
 }
 
+function extractKeyFromUrl(fileUrl: string, bucket: string): string {
+  try {
+    const parsed = new URL(fileUrl);
+    const pathParts = parsed.pathname.split('/').filter(Boolean);
+    if (pathParts[0] === bucket) {
+      return pathParts.slice(1).join('/');
+    }
+    return pathParts.join('/');
+  } catch {
+    return '';
+  }
+}
+
 export class R2Adapter implements IStorageAdapter {
   private config: StorageConfig;
   private endpoint: string;
@@ -105,25 +118,28 @@ export class R2Adapter implements IStorageAdapter {
     }
 
     const publicUrl = `${this.endpoint}/${this.bucket}/${key}`;
-    return { url: publicUrl };
+    return { url: publicUrl, ext_config: JSON.stringify({ key }) };
   }
 
-  async delete(fileUrl: string): Promise<boolean> {
+  async delete(file: FileRecord): Promise<boolean> {
     if (!this.config.accessKey || !this.config.secretKey) {
       return false;
     }
 
     let key: string;
-    try {
-      const parsed = new URL(fileUrl);
-      const pathParts = parsed.pathname.split('/').filter(Boolean);
-      if (pathParts[0] === this.bucket) {
-        key = pathParts.slice(1).join('/');
-      } else {
-        key = pathParts.join('/');
+    if (file.ext_config) {
+      try {
+        const cfg = JSON.parse(file.ext_config);
+        if (cfg.key) {
+          key = cfg.key;
+        } else {
+          key = extractKeyFromUrl(file.original_url, this.bucket);
+        }
+      } catch {
+        key = extractKeyFromUrl(file.original_url, this.bucket);
       }
-    } catch {
-      return false;
+    } else {
+      key = extractKeyFromUrl(file.original_url, this.bucket);
     }
 
     if (!key) return false;

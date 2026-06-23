@@ -197,12 +197,13 @@ uploadConfigsApi.post("/:id/test-upload", async (c) => {
   const originalUrl = uploadResult.url;
   const prefix = config.proxy_prefix || '';
   const proxyUrl = `${prefix}/img/${objectName}`;
+  const extConfig = uploadResult.ext_config || null;
 
   const { success } = await c.env.DB.prepare(
-    "INSERT INTO files (id, filename, file_type, file_size, mime_type, original_url, proxy_url, upload_config_id, storage_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO files (id, filename, file_type, file_size, mime_type, original_url, proxy_url, ext_config, upload_config_id, storage_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
   ).bind(
     fileId, file.name, ext, file.size, file.type,
-    originalUrl, proxyUrl, config.id, config.storage_type
+    originalUrl, proxyUrl, extConfig, config.id, config.storage_type
   ).run();
 
   const returnUrl = config.is_proxy ? proxyUrl : originalUrl;

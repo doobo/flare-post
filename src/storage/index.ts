@@ -3,7 +3,7 @@ import { ImGeAdapter } from "./imge";
 import { S3Adapter } from "./s3";
 import { R2Adapter } from "./r2";
 
-export type { IStorageAdapter, StorageConfig, UploadResult } from "./interface";
+export type { IStorageAdapter, StorageConfig, UploadResult, FileRecord } from "./interface";
 
 export function getStorageAdapter(storageType: string, config: StorageConfig): IStorageAdapter {
   switch (storageType) {

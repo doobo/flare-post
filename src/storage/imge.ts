@@ -1,4 +1,4 @@
-import { IStorageAdapter, StorageConfig, UploadResult } from "./interface";
+import { IStorageAdapter, StorageConfig, UploadResult, FileRecord } from "./interface";
 
 function extractCodeFromUrl(url: string): string | null {
   try {
@@ -60,7 +60,6 @@ export class ImGeAdapter implements IStorageAdapter {
     if (!uploadRes.ok) {
       throw new Error(body.error || "Upload to im.ge failed");
     }
-
     const result = body.data || body;
     const url = result.direct_url || result.cdn_url || result.url || result.short_url ||
                 result.viewer_url || result.seo_url ||
@@ -70,23 +69,33 @@ export class ImGeAdapter implements IStorageAdapter {
       throw new Error("Could not retrieve image URL from im.ge response");
     }
 
-    return { url };
+    const extConfig: Record<string, string> = {};
+    if (result.delete_url) extConfig.delete_url = result.delete_url;
+    if (result.code) extConfig.code = result.code;
+
+    return { url, ext_config: Object.keys(extConfig).length > 0 ? JSON.stringify(extConfig) : undefined };
   }
 
-  async delete(fileUrl: string): Promise<boolean> {
+  async delete(file: FileRecord): Promise<boolean> {
     if (!this.config.accessKey) return false;
 
-    const code = extractCodeFromUrl(fileUrl);
+    let code: string | null = null;
+    if (file.ext_config) {
+      try {
+        const cfg = JSON.parse(file.ext_config);
+        code = cfg.code || null;
+      } catch {}
+    }
+    if (!code) code = extractCodeFromUrl(file.original_url);
     if (!code) return false;
 
     try {
-      const res = await fetch(`https://im.ge/api/v1/images/${code}`, {
+      const res = await fetch(`https://im.ge/api/v1/images/${code}/permanent`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${this.config.accessKey}`
         }
       });
-
       return res.ok;
     } catch {
       return false;

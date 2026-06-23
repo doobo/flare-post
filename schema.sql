@@ -108,8 +108,6 @@ INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order)
 INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order) VALUES (200, '系统标题', 'admin_title', 'Data Center', 'normal', 0, 0);
 INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order) VALUES (201, '热门标签', 'hot_tags', 'kvm,vps,annual,unlimited,domain', 'normal', 0, 0);
 
-INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order, description) VALUES (202, 'im.ge API Key', 'imge_api_key', '', 'encode', 0, 0, 'API key for im.ge image hosting service');
-
 CREATE TABLE IF NOT EXISTS upload_configs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
@@ -135,6 +133,7 @@ CREATE TABLE IF NOT EXISTS files (
   mime_type TEXT,
   original_url TEXT NOT NULL,
   proxy_url TEXT,
+  ext_config TEXT,
   upload_config_id INTEGER,
   storage_type TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

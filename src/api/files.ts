@@ -85,7 +85,7 @@ filesApi.delete("/:id", async (c) => {
       });
 
       try {
-        await adapter.delete(file.original_url);
+        await adapter.delete({ original_url: file.original_url, ext_config: file.ext_config });
       } catch (e) {
         console.error("Storage delete failed:", e);
       }

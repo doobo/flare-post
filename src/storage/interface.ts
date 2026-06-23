@@ -5,12 +5,18 @@ export interface StorageConfig {
   uploadUrl: string | null;
 }
 
+export interface FileRecord {
+  original_url: string;
+  ext_config?: string | null;
+}
+
 export interface UploadResult {
   url: string;
+  ext_config?: string;
 }
 
 export interface IStorageAdapter {
   upload(file: File | Blob, filename: string): Promise<UploadResult>;
-  delete(url: string): Promise<boolean>;
+  delete(file: FileRecord): Promise<boolean>;
   getToken(): Promise<string | null>;
 }
