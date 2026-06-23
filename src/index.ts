@@ -1,9 +1,7 @@
 import app from "./hono/app";
 
-// Image proxy route: /img/{id}.{ext}
 app.get('/img/:id{.+}', async (c) => {
   const param = c.req.param('id');
-  // Extract ID and extension: e.g. "123.jpg" -> id=123, ext=jpg
   const dotIdx = param.lastIndexOf('.');
   let id: string;
   if (dotIdx > 0) {
@@ -15,7 +13,6 @@ app.get('/img/:id{.+}', async (c) => {
   const file = await c.env.DB.prepare("SELECT * FROM files WHERE id = ?").bind(id).first<any>();
 
   if (!file) {
-    // Return placeholder SVG
     const placeholder = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
       <rect width="800" height="600" fill="#f8fafc"/>
       <rect x="275" y="180" width="250" height="250" rx="20" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="2"/>
@@ -50,7 +47,6 @@ app.get('/img/:id{.+}', async (c) => {
   }
 });
 
-// Catch-all for assets/frontend SPA fallback
 app.get('*', async (c) => {
   let response = await c.env.ASSETS.fetch(c.req.raw);
   if (response.status === 404) {

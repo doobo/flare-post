@@ -1,6 +1,8 @@
 import { Hono } from "hono";
 import { Bindings } from "../types";
 import { authMiddleware } from "../security/middleware";
+import { decryptDictValue } from "../security/crypto";
+import { getStorageAdapter } from "../storage";
 
 const filesApi = new Hono<{ Bindings: Bindings }>();
 
@@ -51,6 +53,45 @@ filesApi.get("/:id", async (c) => {
 
 filesApi.delete("/:id", async (c) => {
   const id = c.req.param("id");
+
+  const file = await c.env.DB.prepare("SELECT * FROM files WHERE id = ?").bind(id).first<any>();
+  if (!file) {
+    return c.json({ success: false, error: "File not found" }, 404);
+  }
+
+  const config = await c.env.DB.prepare(
+    "SELECT * FROM upload_configs WHERE id = ?"
+  ).bind(file.upload_config_id).first<any>();
+
+  if (config) {
+    let accessKey: string | null = null;
+    let secretKey: string | null = null;
+    let refreshToken: string | null = null;
+
+    try {
+      if (config.access_key) accessKey = await decryptDictValue(config.access_key, c.env);
+      if (config.secret_key) secretKey = await decryptDictValue(config.secret_key, c.env);
+      if (config.refresh_token) refreshToken = await decryptDictValue(config.refresh_token, c.env);
+    } catch (e) {
+      console.error("Failed to decrypt storage credentials for deletion:", e);
+    }
+
+    if (accessKey) {
+      const adapter = getStorageAdapter(config.storage_type, {
+        accessKey,
+        secretKey,
+        refreshToken,
+        uploadUrl: config.upload_url,
+      });
+
+      try {
+        await adapter.delete(file.original_url);
+      } catch (e) {
+        console.error("Storage delete failed:", e);
+      }
+    }
+  }
+
   await c.env.DB.prepare("DELETE FROM files WHERE id = ?").bind(id).run();
   return c.json({ success: true });
 });

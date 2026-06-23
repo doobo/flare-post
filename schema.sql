@@ -36,8 +36,6 @@ CREATE TABLE IF NOT EXISTS users (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insert a default admin user (password is 'admin123' hashed with SHA-256)
--- Hash of 'admin123' is 240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9
 INSERT OR IGNORE INTO users (id, username, password_hash, email, role) 
 VALUES (1, 'admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'admin@example.com', 'admin');
 
@@ -75,7 +73,6 @@ CREATE TABLE IF NOT EXISTS menus (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insert default admin menus
 INSERT OR IGNORE INTO menus (id, menu_name, menu_key, parent_id, path, type, sort, icon)
 VALUES (1, 'Publish', 'publish_offer', 0, '/admin', 'menu', 1, 'ri-edit-2-fill');
 
@@ -91,11 +88,9 @@ VALUES (4, 'Dictionary', 'manage_dicts', 0, '/admin/dictionaries', 'menu', 4, 'r
 INSERT OR IGNORE INTO menus (id, menu_name, menu_key, parent_id, path, type, sort, icon)
 VALUES (5, 'Menus', 'manage_menus', 0, '/admin/menus', 'menu', 5, 'ri-settings-3-fill');
 
--- Insert root category list config
 INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) 
 VALUES (100, '分类列表', 'category_list', 'normal', 0, 1);
 
--- Insert first-level categories under parent_id = 100
 INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (101, '虚拟机', 'category_list', 'normal', 100, 1);
 INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (102, 'VPN', 'category_list', 'normal', 100, 2);
 INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (103, '域名', 'category_list', 'normal', 100, 3);
@@ -103,7 +98,6 @@ INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order)
 INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (105, '网络工具', 'category_list', 'normal', 100, 5);
 INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (106, '安全工具', 'category_list', 'normal', 100, 6);
 
--- Insert second-level categories under parent_id = 101, 102, 103
 INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (107, 'KVM', 'category_list', 'normal', 101, 1);
 INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (108, 'VMware', 'category_list', 'normal', 101, 2);
 INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (109, '商业VPN', 'category_list', 'normal', 102, 1);
@@ -111,14 +105,11 @@ INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order)
 INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (111, '注册商', 'category_list', 'normal', 103, 1);
 INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (112, 'DNS解析', 'category_list', 'normal', 103, 2);
 
--- Insert admin layout config
 INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order) VALUES (200, '系统标题', 'admin_title', 'Data Center', 'normal', 0, 0);
 INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order) VALUES (201, '热门标签', 'hot_tags', 'kvm,vps,annual,unlimited,domain', 'normal', 0, 0);
 
--- im.ge image hosting API key config
 INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order, description) VALUES (202, 'im.ge API Key', 'imge_api_key', '', 'encode', 0, 0, 'API key for im.ge image hosting service');
 
--- Upload configs table
 CREATE TABLE IF NOT EXISTS upload_configs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
@@ -136,9 +127,8 @@ CREATE TABLE IF NOT EXISTS upload_configs (
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Files table
 CREATE TABLE IF NOT EXISTS files (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id TEXT PRIMARY KEY,
   filename TEXT NOT NULL,
   file_type TEXT,
   file_size INTEGER,
@@ -151,15 +141,11 @@ CREATE TABLE IF NOT EXISTS files (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Default common upload config
 INSERT OR IGNORE INTO upload_configs (id, name, is_default, is_proxy, proxy_prefix, storage_type, status, sort_order, remark)
 VALUES (1, 'Default Common', 1, 1, '', 'common', 1, 0, 'System default common image storage');
 
--- Admin menus for new pages
 INSERT OR IGNORE INTO menus (id, menu_name, menu_key, parent_id, path, type, sort, icon)
 VALUES (6, 'Upload', 'upload_configs', 0, '/admin/upload-configs', 'menu', 6, 'ri-cloud-line');
 
 INSERT OR IGNORE INTO menus (id, menu_name, menu_key, parent_id, path, type, sort, icon)
 VALUES (7, 'Files', 'manage_files', 0, '/admin/files', 'menu', 7, 'ri-file-list-line');
-
-

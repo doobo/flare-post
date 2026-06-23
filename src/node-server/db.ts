@@ -77,7 +77,6 @@ export class LocalD1 {
         keep_alive INTEGER NOT NULL DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
-      -- Insert default admin menus
       INSERT OR IGNORE INTO menus (id, menu_name, menu_key, parent_id, path, type, sort, icon)
       VALUES (1, 'Publish', 'publish_offer', 0, '/admin', 'menu', 1, 'ri-edit-2-fill');
       INSERT OR IGNORE INTO menus (id, menu_name, menu_key, parent_id, path, type, sort, icon)
@@ -92,7 +91,6 @@ export class LocalD1 {
   }
 
   private runMigrations() {
-    // Automatic column migration for existing tables
     try {
       this.db.exec("ALTER TABLE dictionaries ADD COLUMN type TEXT NOT NULL DEFAULT 'normal';");
     } catch (e) {}
@@ -105,10 +103,34 @@ export class LocalD1 {
     try {
       this.db.exec("ALTER TABLE upload_configs ADD COLUMN proxy_prefix TEXT;");
     } catch (e) {}
+    // Recreate files table with TEXT primary key for snowflake IDs
+    try {
+      const tableInfo = this.db.prepare("PRAGMA table_info(files)").all() as any[];
+      const hasTextPk = tableInfo.some((col: any) => col.name === 'id' && col.type === 'TEXT');
+      if (!hasTextPk) {
+        this.db.exec("ALTER TABLE files RENAME TO files_old;");
+        this.db.exec(`CREATE TABLE files (
+          id TEXT PRIMARY KEY,
+          filename TEXT NOT NULL,
+          file_type TEXT,
+          file_size INTEGER,
+          mime_type TEXT,
+          original_url TEXT NOT NULL,
+          proxy_url TEXT,
+          upload_config_id INTEGER,
+          storage_type TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );`);
+        this.db.exec("INSERT INTO files SELECT CAST(id AS TEXT), filename, file_type, file_size, mime_type, original_url, proxy_url, upload_config_id, storage_type, created_at, updated_at FROM files_old;");
+        this.db.exec("DROP TABLE files_old;");
+      }
+    } catch (e) {
+      console.error("Failed to migrate files table:", e);
+    }
   }
 
   private seedData() {
-    // Seed default categories and settings
     try {
       this.db.exec(`
         INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order) VALUES (100, '分类列表', 'category_list', 'normal', 0, 1);
@@ -148,8 +170,9 @@ export class LocalD1 {
           remark TEXT,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
+        -- files table uses TEXT primary key for snowflake IDs
         CREATE TABLE IF NOT EXISTS files (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          id TEXT PRIMARY KEY,
           filename TEXT NOT NULL,
           file_type TEXT,
           file_size INTEGER,
@@ -164,7 +187,7 @@ export class LocalD1 {
         INSERT OR IGNORE INTO upload_configs (id, name, is_default, is_proxy, proxy_prefix, storage_type, status, sort_order, remark)
         VALUES (1, 'Default Common', 1, 1, '', 'common', 1, 0, 'System default common image storage');
         INSERT OR IGNORE INTO menus (id, menu_name, menu_key, parent_id, path, type, sort, icon)
-        VALUES (6, 'Upload Configs', 'upload_configs', 0, '/admin/upload-configs', 'menu', 6, 'ri-cloud-line');
+        VALUES (6, 'Upload', 'upload_configs', 0, '/admin/upload-configs', 'menu', 6, 'ri-cloud-line');
         INSERT OR IGNORE INTO menus (id, menu_name, menu_key, parent_id, path, type, sort, icon)
         VALUES (7, 'Files', 'manage_files', 0, '/admin/files', 'menu', 7, 'ri-file-list-line');
       `);

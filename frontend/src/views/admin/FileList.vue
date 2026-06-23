@@ -123,7 +123,7 @@ import { showConfirm } from '@/utils/confirm'
 import { t } from '@/utils/i18n'
 
 interface FileItem {
-  id: number
+  id: string
   filename: string
   file_type: string | null
   file_size: number | null
@@ -151,7 +151,7 @@ const typeFilter = ref('')
 let searchTimer: any = null
 
 const showUrlModal = ref(false)
-const urlItem = ref<FileItem>({ id: 0, filename: '', file_type: '', file_size: 0, mime_type: '', original_url: '', proxy_url: '', upload_config_id: null, storage_type: '', created_at: '' })
+const urlItem = ref<FileItem>({ id: '', filename: '', file_type: '', file_size: 0, mime_type: '', original_url: '', proxy_url: '', upload_config_id: null, storage_type: '', created_at: '' })
 
 const fetchItems = async () => {
   loading.value = true
@@ -241,7 +241,7 @@ const onImgError = (e: Event) => {
   img.style.display = 'none'
 }
 
-const deleteItem = async (id: number) => {
+const deleteItem = async (id: string) => {
   const confirmed = await showConfirm('Delete this file record?')
   if (!confirmed) return
   const token = localStorage.getItem('adminToken')
