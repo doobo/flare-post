@@ -74,169 +74,163 @@
     </div>
 
     <!-- Modal -->
-    <div v-if="showModal" class="relative z-50" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-      <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" @click="closeModal"></div>
-      <div class="fixed inset-0 z-10 overflow-y-auto">
-        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0" @click.self="closeModal">
-          <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden transform transition-all text-left my-8">
-            <form @submit.prevent="saveItem">
-              <div class="px-6 py-6 sm:p-8">
-                <h3 class="text-xl font-semibold text-slate-900 mb-6">
-                  {{ isEditing ? t('admin_upload_config_modal_edit') : t('admin_upload_config_modal_add') }}
-                </h3>
+    <form @submit.prevent="saveItem">
+      <ModalDialog v-model="showModal" :title="isEditing ? t('admin_upload_config_modal_edit') : t('admin_upload_config_modal_add')">
+        <div class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_upload_config_form_name') }}</label>
+            <input v-model="form.name" type="text" required class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" />
+          </div>
 
-                <div class="space-y-5">
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_upload_config_form_name') }}</label>
-                    <input v-model="form.name" type="text" required class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" />
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_upload_config_form_storage_type') }}</label>
-                    <div class="relative">
-                      <select v-model="form.storage_type" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none appearance-none transition-shadow bg-white text-sm">
-                        <option value="common">common</option>
-                        <option value="S3">S3</option>
-                        <option value="R2">R2</option>
-                      </select>
-                      <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_upload_config_form_upload_url') }}</label>
-                    <input v-model="form.upload_url" type="text" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" />
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_upload_config_form_proxy_prefix') }}</label>
-                    <input v-model="form.proxy_prefix" type="text" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" :placeholder="t('admin_upload_config_form_proxy_prefix_ph')" />
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_upload_config_form_access_key') }}</label>
-                    <input v-model="form.access_key" type="text" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" />
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_upload_config_form_secret_key') }}</label>
-                    <input v-model="form.secret_key" type="password" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" />
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_upload_config_form_refresh_token') }}</label>
-                    <input v-model="form.refresh_token" type="password" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" />
-                  </div>
-
-                  <div class="flex items-center gap-6">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                      <input v-model="form.is_default" type="checkbox" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500" />
-                      <span class="text-sm text-slate-700">{{ t('admin_upload_config_form_is_default') }}</span>
-                    </label>
-                    <label class="flex items-center gap-2 cursor-pointer">
-                      <input v-model="form.is_proxy" type="checkbox" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500" />
-                      <span class="text-sm text-slate-700">{{ t('admin_upload_config_form_is_proxy') }}</span>
-                    </label>
-                  </div>
-
-                  <div class="flex items-center gap-6">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                      <input v-model="form.status" type="checkbox" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500" />
-                      <span class="text-sm text-slate-700">{{ t('admin_upload_config_form_status') }}</span>
-                    </label>
-                    <div>
-                      <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_upload_config_form_sort') }}</label>
-                      <input v-model.number="form.sort_order" type="number" class="w-24 px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_upload_config_form_remark') }}</label>
-                    <textarea v-model="form.remark" rows="2" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm"></textarea>
-                  </div>
-                </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_upload_config_form_storage_type') }}</label>
+            <div class="relative">
+              <select v-model="form.storage_type" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none appearance-none transition-shadow bg-white text-sm">
+                <option v-for="st in storageTypes" :key="st.id" :value="st.value">{{ st.name }}</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
               </div>
+            </div>
+            <div v-if="storageTypeHints.length" class="mt-2 flex flex-wrap gap-2">
+              <span v-for="hint in storageTypeHints" :key="hint.id" class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs bg-indigo-50 text-indigo-700 border border-indigo-100">
+                {{ hint.name }}
+              </span>
+            </div>
+          </div>
 
-              <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-                <button type="button" @click="closeModal" class="w-full sm:w-auto px-6 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors text-sm">
-                  {{ t('admin_upload_config_cancel') }}
-                </button>
-                <button type="submit" :disabled="saving" class="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-60 flex items-center justify-center text-sm">
-                  <svg v-if="saving" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  {{ saving ? t('admin_upload_config_saving') : t('admin_upload_config_save') }}
-                </button>
-              </div>
-            </form>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_upload_config_form_upload_url') }}</label>
+            <input v-model="form.upload_url" type="text" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_upload_config_form_proxy_prefix') }}</label>
+            <input v-model="form.proxy_prefix" type="text" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" :placeholder="t('admin_upload_config_form_proxy_prefix_ph')" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_upload_config_form_access_key') }}</label>
+            <input v-model="form.access_key" type="text" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_upload_config_form_secret_key') }}</label>
+            <input v-model="form.secret_key" type="password" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_upload_config_form_refresh_token') }}</label>
+            <input v-model="form.refresh_token" type="password" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" />
+          </div>
+
+          <div class="flex gap-6">
+            <div class="w-1/2">
+              <label class="flex items-center gap-2 cursor-pointer px-4 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors">
+                <input v-model="form.is_default" type="checkbox" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500" />
+                <span class="text-sm text-slate-700">{{ t('admin_upload_config_form_is_default') }}</span>
+              </label>
+            </div>
+            <div class="w-1/2">
+              <label class="flex items-center gap-2 cursor-pointer px-4 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors">
+                <input v-model="form.is_proxy" type="checkbox" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500" />
+                <span class="text-sm text-slate-700">{{ t('admin_upload_config_form_is_proxy') }}</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="flex gap-6">
+            <div class="w-1/2">
+              <label class="flex items-center gap-2 cursor-pointer px-4 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors">
+                <input v-model="form.status" type="checkbox" class="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500" />
+                <span class="text-sm text-slate-700">{{ t('admin_upload_config_form_status') }}</span>
+              </label>
+            </div>
+            <div class="w-1/2">
+              <label class="flex items-center gap-2 px-4 py-3 border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors cursor-text">
+                <span class="text-sm text-slate-700 whitespace-nowrap">{{ t('admin_upload_config_form_sort') }}</span>
+                <input v-model.number="form.sort_order" type="number" class="flex-1 min-w-0 border-0 p-0 text-sm text-right focus:ring-0 outline-none" />
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_upload_config_form_remark') }}</label>
+            <textarea v-model="form.remark" rows="2" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm"></textarea>
           </div>
         </div>
-      </div>
-    </div>
+
+        <template #footer>
+          <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+            <button type="button" @click="closeModal" class="w-full sm:w-auto px-6 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors text-sm">
+              {{ t('admin_upload_config_cancel') }}
+            </button>
+            <button type="submit" :disabled="saving" class="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-60 flex items-center justify-center text-sm">
+              <svg v-if="saving" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {{ saving ? t('admin_upload_config_saving') : t('admin_upload_config_save') }}
+            </button>
+          </div>
+        </template>
+      </ModalDialog>
+    </form>
 
     <!-- Hidden file input for test upload -->
     <input ref="testFileInputRef" type="file" accept="image/*" class="hidden" @change="onTestFileSelected" />
 
     <!-- Test Upload Result Modal -->
-    <div v-if="showTestResult" class="relative z-50" role="dialog" aria-modal="true">
-      <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" @click="showTestResult = false"></div>
-      <div class="fixed inset-0 z-10 overflow-y-auto">
-        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-          <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden transform transition-all text-left my-8">
-            <div class="px-6 py-6 sm:p-8">
-              <h3 class="text-xl font-semibold text-slate-900 mb-4">{{ t('admin_upload_config_test_result') }}</h3>
-              <div v-if="testUploading" class="flex items-center justify-center py-8">
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                <span class="ml-3 text-sm text-slate-500">{{ t('admin_upload_config_test_uploading') }}</span>
-              </div>
-              <div v-else-if="testError" class="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl p-4 mb-4">
-                {{ testError }}
-              </div>
-              <div v-else-if="testResult" class="space-y-4">
-                <div v-if="testResult.proxy_url" class="flex justify-center">
-                  <img :src="testResult.proxy_url" class="max-h-48 rounded-xl border border-slate-200" @error="onTestImgError" />
-                </div>
-                <div>
-                  <label class="block text-xs font-medium text-slate-500 mb-1">{{ t('admin_upload_config_test_url') }}</label>
-                  <div class="flex gap-2">
-                    <input :value="testResult.url" readonly class="flex-1 px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 text-slate-700 font-mono" />
-                    <button @click="copyText(testResult.url)" class="px-3 py-2 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors">{{ t('admin_upload_config_copy') }}</button>
-                  </div>
-                </div>
-                <div v-if="testResult.original_url !== testResult.url">
-                  <label class="block text-xs font-medium text-slate-500 mb-1">{{ t('admin_upload_config_test_original') }}</label>
-                  <div class="flex gap-2">
-                    <input :value="testResult.original_url" readonly class="flex-1 px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 text-slate-700 font-mono" />
-                    <button @click="copyText(testResult.original_url)" class="px-3 py-2 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors">{{ t('admin_upload_config_copy') }}</button>
-                  </div>
-                </div>
-                <div class="text-xs text-slate-400">
-                  {{ t('admin_upload_config_test_file_id') }}: {{ testResult.file_id }}
-                </div>
-              </div>
-            </div>
-            <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex justify-end">
-              <button @click="showTestResult = false" class="px-6 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors text-sm">
-                {{ t('admin_upload_config_close') }}
-              </button>
-            </div>
+    <ModalDialog v-model="showTestResult" :title="t('admin_upload_config_test_result')" :close-on-overlay="false">
+      <div v-if="testUploading" class="flex items-center justify-center py-8">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        <span class="ml-3 text-sm text-slate-500">{{ t('admin_upload_config_test_uploading') }}</span>
+      </div>
+      <div v-else-if="testError" class="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl p-4">
+        {{ testError }}
+      </div>
+      <div v-else-if="testResult" class="space-y-4">
+        <div v-if="testResult.proxy_url" class="flex justify-center">
+          <img :src="testResult.proxy_url" class="max-h-48 rounded-xl border border-slate-200" @error="onTestImgError" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-500 mb-1">{{ t('admin_upload_config_test_url') }}</label>
+          <div class="flex gap-2">
+            <input :value="testResult.url" readonly class="flex-1 px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 text-slate-700 font-mono" />
+            <button @click="copyText(testResult.url)" class="px-3 py-2 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors">{{ t('admin_upload_config_copy') }}</button>
           </div>
         </div>
+        <div v-if="testResult.original_url !== testResult.url">
+          <label class="block text-xs font-medium text-slate-500 mb-1">{{ t('admin_upload_config_test_original') }}</label>
+          <div class="flex gap-2">
+            <input :value="testResult.original_url" readonly class="flex-1 px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 text-slate-700 font-mono" />
+            <button @click="copyText(testResult.original_url)" class="px-3 py-2 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors">{{ t('admin_upload_config_copy') }}</button>
+          </div>
+        </div>
+        <div class="text-xs text-slate-400">
+          {{ t('admin_upload_config_test_file_id') }}: {{ testResult.file_id }}
+        </div>
       </div>
-    </div>
+
+      <template #footer>
+        <div class="flex justify-end">
+          <button @click="showTestResult = false" class="px-6 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors text-sm">
+            {{ t('admin_upload_config_close') }}
+          </button>
+        </div>
+      </template>
+    </ModalDialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { showToast } from '@/utils/toast'
 import { showConfirm } from '@/utils/confirm'
 import { t } from '@/utils/i18n'
+import ModalDialog from '@/components/ModalDialog.vue'
 
 interface UploadConfig {
   id: number
@@ -276,6 +270,42 @@ const form = ref({
 })
 const editingId = ref<number | null>(null)
 
+interface DictItem {
+  id: number
+  name: string
+  code: string
+  value: string | null
+  parent_id: number
+  description: string | null
+}
+
+const storageTypes = ref<DictItem[]>([])
+const storageTypeHints = ref<DictItem[]>([])
+let allDictItems: DictItem[] = []
+
+const fetchStorageTypes = async () => {
+  try {
+    const res = await fetch('/api/dictionaries')
+    const items: DictItem[] = await res.json()
+    allDictItems = items
+    const root = items.find((d: DictItem) => d.code === 'storage_type' && d.parent_id === 0)
+    if (root) {
+      storageTypes.value = items.filter((d: DictItem) => d.parent_id === root.id)
+    }
+  } catch (e) {}
+}
+
+const updateStorageTypeHints = (typeValue: string) => {
+  const selected = storageTypes.value.find((d: DictItem) => d.value === typeValue)
+  if (selected) {
+    storageTypeHints.value = allDictItems.filter((d: DictItem) => d.parent_id === selected.id)
+  } else {
+    storageTypeHints.value = []
+  }
+}
+
+watch(() => form.value.storage_type, updateStorageTypeHints)
+
 const fetchItems = async () => {
   loading.value = true
   const token = localStorage.getItem('adminToken')
@@ -300,6 +330,7 @@ const openAddModal = () => {
     is_proxy: false, status: true, sort_order: 0, remark: '',
   }
   showModal.value = true
+  updateStorageTypeHints(form.value.storage_type)
 }
 
 const openEditModal = (item: UploadConfig) => {
@@ -320,6 +351,7 @@ const openEditModal = (item: UploadConfig) => {
     remark: item.remark || '',
   }
   showModal.value = true
+  updateStorageTypeHints(form.value.storage_type)
 }
 
 const closeModal = () => {
@@ -461,5 +493,8 @@ const deleteItem = async (id: number, isDefault: number) => {
   }
 }
 
-onMounted(fetchItems)
+onMounted(() => {
+  fetchItems()
+  fetchStorageTypes()
+})
 </script>

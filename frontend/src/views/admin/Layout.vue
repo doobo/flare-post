@@ -294,18 +294,13 @@ interface TabItem {
 }
 const tabs = ref<TabItem[]>([])
 
+const menuPathMap: Record<string, string> = {}
+
 const addTab = (toRoute: any) => {
   const path = toRoute.path
   if (!path.startsWith('/admin') || path === '/admin/login') return
   
-  // Find menu name matching the route path
-  let name = ''
-  if (path === '/admin') name = t('admin_tab_publish')
-  else if (path === '/admin/list') name = t('admin_tab_offers')
-  else if (path === '/admin/users') name = t('admin_tab_users')
-  else if (path === '/admin/dictionaries') name = t('admin_tab_dictionaries')
-  else if (path === '/admin/menus') name = t('admin_tab_menus')
-  else name = toRoute.meta?.title || t('admin_tab_page')
+  let name = menuPathMap[path] || toRoute.meta?.title || t('admin_tab_page')
 
   const exists = tabs.value.some(t => t.path === path)
   if (!exists) {
@@ -336,12 +331,7 @@ watch(() => route.path, () => {
 
 const currentMenuName = computed(() => {
   const path = route.path
-  if (path === '/admin') return t('admin_cur_publish')
-  if (path === '/admin/list') return t('admin_cur_offers')
-  if (path === '/admin/users') return t('admin_cur_users')
-  if (path === '/admin/dictionaries') return t('admin_cur_dictionaries')
-  if (path === '/admin/menus') return t('admin_cur_menus')
-  return t('admin_cur_dashboard')
+  return menuPathMap[path] || t('admin_cur_dashboard')
 })
 
 const toggleMenu = (id: number) => {
@@ -395,7 +385,19 @@ const fetchSideMenus = async () => {
       const visibleMenus = data.filter((m: any) => m.hidden === 0)
       const tree = buildMenuTree(visibleMenus, 0)
       sideMenus.value = tree
-      
+
+      // Build path -> menu_name lookup for tab names
+      data.forEach((m: any) => {
+        if (m.path) menuPathMap[m.path] = m.menu_name
+      })
+
+      // Update existing tab name if it was set before menus loaded
+      const activePath = router.currentRoute.value.path
+      const tab = tabs.value.find(t => t.path === activePath)
+      if (tab && menuPathMap[activePath]) {
+        tab.name = menuPathMap[activePath]
+      }
+
       // Auto-expand directories containing active routes
       const currentPath = router.currentRoute.value.path
       tree.forEach((menu) => {

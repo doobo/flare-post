@@ -108,6 +108,11 @@ INSERT OR IGNORE INTO dictionaries (id, name, code, type, parent_id, sort_order)
 INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order) VALUES (200, '系统标题', 'admin_title', 'Data Center', 'normal', 0, 0);
 INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order) VALUES (201, '热门标签', 'hot_tags', 'kvm,vps,annual,unlimited,domain', 'normal', 0, 0);
 
+INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order, description) VALUES (300, '存储类型', 'storage_type', NULL, 'normal', 0, 0, '存储适配器类型');
+INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order, description) VALUES (301, 'im.ge', '', 'common', 'normal', 300, 0, '默认 im.ge 图片托管服务');
+INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order, description) VALUES (302, 'S3', '', 'S3', 'normal', 300, 1, 'AWS S3 兼容对象存储');
+INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order, description) VALUES (303, 'R2', '', 'R2', 'normal', 300, 2, 'Cloudflare R2 对象存储');
+
 CREATE TABLE IF NOT EXISTS upload_configs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
