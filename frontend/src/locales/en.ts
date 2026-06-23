@@ -99,6 +99,13 @@ export default {
   admin_users_save: 'Save User',
   admin_users_saving: 'Saving...',
   admin_users_delete_confirm: 'Are you sure you want to delete this user?',
+  admin_users_avatar: 'Avatar',
+  admin_users_avatar_change: 'Change Avatar',
+  admin_users_avatar_uploading: 'Uploading...',
+  admin_users_avatar_crop_title: 'Crop Avatar',
+  admin_users_avatar_crop_confirm: 'Confirm Crop',
+  admin_users_avatar_crop_cancel: 'Cancel',
+  admin_users_avatar_upload_error: 'Avatar upload failed',
   admin_users_save_error: 'Failed to save user',
   admin_users_network_error: 'Network error',
 

@@ -99,6 +99,13 @@ export default {
   admin_users_save: '保存',
   admin_users_saving: '保存中...',
   admin_users_delete_confirm: '确定要删除此用户吗？',
+  admin_users_avatar: '头像',
+  admin_users_avatar_change: '更换',
+  admin_users_avatar_uploading: '上传中...',
+  admin_users_avatar_crop_title: '裁剪头像',
+  admin_users_avatar_crop_confirm: '确认裁剪',
+  admin_users_avatar_crop_cancel: '取消',
+  admin_users_avatar_upload_error: '头像上传失败',
   admin_users_save_error: '保存用户失败',
   admin_users_network_error: '网络错误',
 

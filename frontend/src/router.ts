@@ -38,15 +38,13 @@ const router = createRouter({
 })
 
 // Route guard for admin
-router.beforeEach((to, _, next) => {
+router.beforeEach((to) => {
   if (to.path.startsWith('/admin') && to.path !== '/admin/login') {
     const token = localStorage.getItem('adminToken')
     if (!token) {
-      next('/admin/login')
-      return
+      return '/admin/login'
     }
   }
-  next()
 })
 
 export default router

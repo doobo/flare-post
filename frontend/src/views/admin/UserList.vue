@@ -32,7 +32,13 @@
           <tbody class="bg-white divide-y divide-slate-200">
             <tr v-for="user in users" :key="user.id" class="hover:bg-slate-50 transition-colors">
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-slate-900">{{ user.username }}</div>
+                <div class="flex items-center space-x-3">
+                  <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm overflow-hidden shrink-0">
+                    <img v-if="user.avatar" :src="user.avatar" class="w-full h-full object-cover" />
+                    <span v-else>{{ user.username.charAt(0).toUpperCase() }}</span>
+                  </div>
+                  <div class="text-sm font-medium text-slate-900">{{ user.username }}</div>
+                </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                 {{ user.email || '-' }}
@@ -77,6 +83,19 @@
               </h3>
               
               <div class="space-y-5">
+                <div class="text-center">
+                  <div class="flex flex-col items-center">
+                    <div class="w-20 h-20 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-2xl overflow-hidden border-2 border-slate-200">
+                      <img v-if="form.avatar" :src="form.avatar" class="w-full h-full object-cover" />
+                      <span v-else>{{ (form.username || 'U').charAt(0).toUpperCase() }}</span>
+                    </div>
+                    <div class="mt-2 flex items-center gap-3">
+                      <a @click="triggerAvatarUpload" class="text-xs text-indigo-600 hover:text-indigo-800 cursor-pointer">{{ t('admin_users_avatar_change') }}</a>
+                      <a v-if="form.avatar" @click="form.avatar = ''" class="text-xs text-red-500 hover:text-red-700 cursor-pointer">{{ t('admin_users_delete') }}</a>
+                    </div>
+                    <input ref="avatarInputRef" type="file" accept="image/*" class="hidden" @change="onAvatarSelected" />
+                  </div>
+                </div>
                 <div>
                   <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_users_form_username') }}</label>
                   <input v-model="form.username" type="text" required class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow" :placeholder="t('admin_users_ph_username')" />
@@ -130,15 +149,45 @@
     </div>
   </div>
 </div>
+
+<!-- Crop Modal -->
+<div v-if="showCropModal" class="relative z-50" aria-labelledby="crop-modal-title" role="dialog" aria-modal="true">
+  <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
+  <div class="fixed inset-0 z-10 overflow-y-auto">
+    <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+      <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden transform transition-all text-left my-8">
+        <div class="px-6 py-6 sm:p-8">
+          <h3 class="text-xl font-semibold text-slate-900 mb-4" id="crop-modal-title">{{ t('admin_users_avatar_crop_title') }}</h3>
+          <div class="bg-slate-100 rounded-xl overflow-hidden max-h-80">
+            <img ref="cropImageRef" :src="cropImageSrc" class="max-w-full" />
+          </div>
+        </div>
+        <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+          <button type="button" @click="cancelCrop" class="w-full sm:w-auto px-6 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors">
+            {{ t('admin_users_avatar_crop_cancel') }}
+          </button>
+          <button type="button" @click="confirmCrop" :disabled="cropUploading" class="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-60 flex items-center justify-center">
+            <svg v-if="cropUploading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ cropUploading ? t('admin_users_avatar_uploading') : t('admin_users_avatar_crop_confirm') }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast } from '@/utils/toast'
 import { encryptPassword } from '@/utils/crypto'
 import { showConfirm } from '@/utils/confirm'
 import { t } from '@/utils/i18n'
+import Cropper from 'cropperjs'
 
 const router = useRouter()
 const users = ref<any[]>([])
@@ -147,7 +196,14 @@ const loading = ref(true)
 const showModal = ref(false)
 const isEditing = ref(false)
 const saving = ref(false)
-const form = ref({ id: '', username: '', password: '', email: '', role: 'admin' })
+const form = ref({ id: '', username: '', password: '', email: '', role: 'admin', avatar: '' })
+
+const showCropModal = ref(false)
+const cropUploading = ref(false)
+const cropImageSrc = ref('')
+const cropImageRef = ref<HTMLImageElement | null>(null)
+const avatarInputRef = ref<HTMLInputElement | null>(null)
+let cropper: Cropper | null = null
 
 const fetchUsers = async () => {
   loading.value = true
@@ -170,18 +226,94 @@ const fetchUsers = async () => {
 
 const openAddModal = () => {
   isEditing.value = false
-  form.value = { id: '', username: '', password: '', email: '', role: 'admin' }
+  form.value = { id: '', username: '', password: '', email: '', role: 'admin', avatar: '' }
   showModal.value = true
 }
 
 const openEditModal = (user: any) => {
   isEditing.value = true
-  form.value = { id: user.id.toString(), username: user.username, password: '', email: user.email || '', role: user.role }
+  form.value = { id: user.id.toString(), username: user.username, password: '', email: user.email || '', role: user.role, avatar: user.avatar || '' }
   showModal.value = true
 }
 
 const closeModal = () => {
   showModal.value = false
+}
+
+const triggerAvatarUpload = () => {
+  avatarInputRef.value?.click()
+}
+
+const onAvatarSelected = async (e: Event) => {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  const reader = new FileReader()
+  reader.onload = (ev) => {
+    cropImageSrc.value = ev.target?.result as string
+    showCropModal.value = true
+    nextTick(() => {
+      if (cropImageRef.value) {
+        cropper?.destroy()
+        cropper = new Cropper(cropImageRef.value, {
+          aspectRatio: 1,
+          viewMode: 1,
+          dragMode: 'move',
+          autoCropArea: 1,
+          cropBoxResizable: true,
+          cropBoxMovable: true,
+          background: false
+        })
+      }
+    })
+  }
+  reader.readAsDataURL(file)
+  input.value = ''
+}
+
+const cancelCrop = () => {
+  cropper?.destroy()
+  cropper = null
+  showCropModal.value = false
+  cropImageSrc.value = ''
+}
+
+const confirmCrop = async () => {
+  if (!cropper) return
+  cropUploading.value = true
+  try {
+    const canvas = cropper.getCroppedCanvas({
+      width: 200,
+      height: 200,
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: 'high'
+    })
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, 'image/jpeg', 0.85)
+    })
+    if (!blob) throw new Error('Failed to compress image')
+
+    const formData = new FormData()
+    formData.append('image', blob, 'avatar.jpg')
+
+    const token = localStorage.getItem('adminToken')
+    const res = await fetch('/api/upload/image', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    })
+    if (!res.ok) throw new Error('Upload failed')
+    const data = await res.json()
+    form.value.avatar = data.url
+    cancelCrop()
+    showToast('Avatar updated', 'success')
+  } catch (e) {
+    console.error(e)
+    showToast(t('admin_users_avatar_upload_error'), 'error')
+  } finally {
+    cropUploading.value = false
+  }
 }
 
 const saveUser = async () => {
@@ -197,18 +329,21 @@ const saveUser = async () => {
     const url = isEditing.value ? `/api/users/${form.value.id}` : '/api/users'
     const method = isEditing.value ? 'PUT' : 'POST'
     
+    const body: any = {
+      username: form.value.username,
+      email: form.value.email,
+      role: form.value.role
+    }
+    if (encryptedPassword) body.password = encryptedPassword
+    if (isEditing.value) body.avatar = form.value.avatar || null
+
     const res = await fetch(url, {
       method,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({
-        username: form.value.username,
-        password: encryptedPassword,
-        email: form.value.email,
-        role: form.value.role
-      })
+      body: JSON.stringify(body)
     })
 
     if (res.ok) {

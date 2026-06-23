@@ -41,6 +41,7 @@ export class LocalD1 {
         password_hash TEXT NOT NULL,
         email TEXT,
         role TEXT DEFAULT 'admin',
+        avatar TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
       INSERT OR IGNORE INTO users (id, username, password_hash, email, role) 
@@ -102,6 +103,9 @@ export class LocalD1 {
     } catch (e) {}
     try {
       this.db.exec("ALTER TABLE upload_configs ADD COLUMN proxy_prefix TEXT;");
+    } catch (e) {}
+    try {
+      this.db.exec("ALTER TABLE users ADD COLUMN avatar TEXT;");
     } catch (e) {}
     // Recreate files table with TEXT primary key for snowflake IDs
     try {

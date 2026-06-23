@@ -8,7 +8,7 @@ const usersApi = new Hono<{ Bindings: Bindings }>();
 usersApi.use("*", authMiddleware);
 
 usersApi.get("/", async (c) => {
-  const { results } = await c.env.DB.prepare("SELECT id, username, email, role, created_at FROM users").all();
+  const { results } = await c.env.DB.prepare("SELECT id, username, email, role, avatar, created_at FROM users").all();
   return c.json(results);
 });
 
@@ -42,7 +42,7 @@ usersApi.post("/", async (c) => {
 
 usersApi.put("/:id", async (c) => {
   const id = c.req.param("id");
-  const { username, password, email, role } = await c.req.json();
+  const { username, password, email, role, avatar } = await c.req.json();
   
   try {
     if (password) {
@@ -55,13 +55,13 @@ usersApi.put("/:id", async (c) => {
       }
       const hashedPwd = await hashPassword(decryptedPwd);
       await c.env.DB
-        .prepare("UPDATE users SET username = ?, password_hash = ?, email = ?, role = ? WHERE id = ?")
-        .bind(username, hashedPwd, email || null, role || 'admin', id)
+        .prepare("UPDATE users SET username = ?, password_hash = ?, email = ?, role = ?, avatar = ? WHERE id = ?")
+        .bind(username, hashedPwd, email || null, role || 'admin', avatar || null, id)
         .run();
     } else {
       await c.env.DB
-        .prepare("UPDATE users SET username = ?, email = ?, role = ? WHERE id = ?")
-        .bind(username, email || null, role || 'admin', id)
+        .prepare("UPDATE users SET username = ?, email = ?, role = ?, avatar = ? WHERE id = ?")
+        .bind(username, email || null, role || 'admin', avatar || null, id)
         .run();
     }
     return c.json({ success: true });

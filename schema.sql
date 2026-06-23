@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   email TEXT,
   role TEXT DEFAULT 'admin',
+  avatar TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

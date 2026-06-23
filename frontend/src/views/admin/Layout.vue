@@ -173,7 +173,7 @@
     <!-- Main Content Area Wrapper -->
     <div class="flex-1 flex flex-col h-screen overflow-hidden">
       <!-- Top Navigation Bar -->
-      <header class="bg-white border-b border-slate-100 h-16 flex items-center justify-between pl-0 pr-6 shrink-0 shadow-sm z-10">
+      <header class="bg-white border-b border-slate-100 h-16 flex items-center justify-between pl-0 pr-2 shrink-0 shadow-sm z-10">
         <!-- Left: Page Title / Breadcrumb -->
         <div class="flex items-center space-x-4">
           <button @click="toggleSidebar" class="p-1 rounded cursor-pointer" :title="isCollapsed ? t('admin_expand_sidebar') : t('admin_collapse_sidebar')">
@@ -186,30 +186,39 @@
           </div>
         </div>
 
-        <!-- Right: User Profile & Quick Logout -->
-        <div class="flex items-center space-x-4">
-          <div v-if="userInfo" class="flex items-center space-x-3 border-r border-slate-100 pr-4">
-            <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">
-              {{ userInfo.username.charAt(0).toUpperCase() }}
+        <!-- Right: User Profile Dropdown -->
+        <div class="relative user-dropdown-area" v-if="userInfo">
+          <button @click="showUserDropdown = !showUserDropdown" class="flex items-center space-x-3 pr-4 rounded-lg hover:bg-slate-100 transition-colors px-2 py-1.5 cursor-pointer">
+            <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm overflow-hidden">
+              <img v-if="userInfo.avatar" :src="userInfo.avatar" class="w-full h-full object-cover" />
+              <span v-else>{{ userInfo.username.charAt(0).toUpperCase() }}</span>
             </div>
             <div class="text-left hidden sm:block">
               <div class="text-xs font-semibold text-slate-700">{{ userInfo.username }}</div>
               <div class="text-[10px] text-slate-400">{{ userInfo.email || t('admin_no_email') }}</div>
             </div>
+            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="showUserDropdown ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div v-show="showUserDropdown" class="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-1.5 z-50">
+            <button @click="toggleFullscreen" class="w-full flex items-center px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-slate-800 transition-colors cursor-pointer">
+              <svg v-if="!isFullscreen" class="w-4 h-4 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8V3m0 0h5M3 3l6 6m12 0V3m0 0h-5m5 0l-6 6M3 16v5m0 0h5m-5 0l6-6m12 5v-5m0 5h-5m5 0l-6-6" />
+              </svg>
+              <svg v-else class="w-4 h-4 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V3m0 0L3 9m6-6l6 6m0 0v6m0 0l6-6m-6 6H9" />
+              </svg>
+              {{ isFullscreen ? t('admin_exit_fullscreen') : t('admin_fullscreen') }}
+            </button>
+            <div class="border-t border-slate-100 my-1"></div>
+            <button @click="logout" class="w-full flex items-center px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors cursor-pointer">
+              <svg class="w-4 h-4 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              {{ t('admin_logout') }}
+            </button>
           </div>
-          <button @click="toggleFullscreen" class="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer" :title="isFullscreen ? t('admin_exit_fullscreen') : t('admin_fullscreen')">
-            <svg v-if="!isFullscreen" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8V3m0 0h5M3 3l6 6m12 0V3m0 0h-5m5 0l-6 6M3 16v5m0 0h5m-5 0l6-6m12 5v-5m0 5h-5m5 0l-6-6" />
-            </svg>
-            <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V3m0 0L3 9m6-6l6 6m0 0v6m0 0l6-6m-6 6H9" />
-            </svg>
-          </button>
-          <button @click="logout" class="p-2 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer" :title="t('admin_logout')">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-          </button>
         </div>
       </header>
 
@@ -273,9 +282,11 @@ interface UserInfo {
   username: string
   email: string
   role: string
+  avatar?: string
 }
 const userInfo = ref<UserInfo | null>(null)
 const isFullscreen = ref(false)
+const showUserDropdown = ref(false)
 
 const adminTitle = ref('Admin Panel')
 const collapsedTitle = computed(() => {
@@ -496,6 +507,18 @@ const fetchUserInfo = async () => {
   }
 }
 
+const logout = () => {
+  localStorage.removeItem('adminToken')
+  router.push('/admin/login')
+}
+
+const handleClickOutside = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  if (!target.closest('.user-dropdown-area')) {
+    showUserDropdown.value = false
+  }
+}
+
 onMounted(() => {
   const token = localStorage.getItem('adminToken')
   if (!token) {
@@ -507,17 +530,14 @@ onMounted(() => {
   }
   window.addEventListener('menus-updated', fetchSideMenus)
   document.addEventListener('fullscreenchange', onFullscreenChange)
+  document.addEventListener('click', handleClickOutside)
 })
 
 onUnmounted(() => {
   window.removeEventListener('menus-updated', fetchSideMenus)
   document.removeEventListener('fullscreenchange', onFullscreenChange)
+  document.removeEventListener('click', handleClickOutside)
 })
-
-const logout = () => {
-  localStorage.removeItem('adminToken')
-  router.push('/admin/login')
-}
 </script>
 
 <style scoped>

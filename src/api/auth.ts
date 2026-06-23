@@ -50,9 +50,9 @@ authApi.post("/login", async (c) => {
 authApi.get("/me", authMiddleware, async (c) => {
   const user = c.get("user" as any) as { id: number; username: string; role: string };
   const result = await c.env.DB
-    .prepare("SELECT id, username, email, role, created_at FROM users WHERE id = ?")
+    .prepare("SELECT id, username, email, role, avatar, created_at FROM users WHERE id = ?")
     .bind(user.id)
-    .first<{ id: number; username: string; email: string; role: string; created_at: string }>();
+    .first<{ id: number; username: string; email: string; role: string; avatar: string; created_at: string }>();
 
   if (!result) return c.json({ success: false, error: "User not found" }, 404);
   return c.json({ success: true, user: result });

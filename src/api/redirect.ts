@@ -76,7 +76,7 @@ redirectApi.get("/redirect", async (c) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>安全跳转提示 - Cloud Web</title>
+  <title>安全跳转提示 - Flare Post</title>
   <style>
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
