@@ -113,6 +113,17 @@ INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort
 INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order, description) VALUES (302, 'S3', '', 'S3', 'normal', 300, 1, 'AWS S3 兼容对象存储');
 INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order, description) VALUES (303, 'R2', '', 'R2', 'normal', 300, 2, 'Cloudflare R2 对象存储');
 
+INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order, description) VALUES (400, '跳转白名单', 'redirect_whitelist', NULL, 'normal', 0, 0, '链接跳转安全域名白名单');
+INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order) VALUES (401, 'GitHub', 'redirect_whitelist', 'github.com', 'normal', 400, 1);
+INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order) VALUES (402, 'Cloudflare', 'redirect_whitelist', 'cloudflare.com', 'normal', 400, 2);
+INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order) VALUES (403, 'Google', 'redirect_whitelist', 'google.com', 'normal', 400, 3);
+INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order) VALUES (404, 'Workers', 'redirect_whitelist', 'workers.cloudflare.com', 'normal', 400, 4);
+INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order) VALUES (405, 'NPM Trends', 'redirect_whitelist', 'npmtrends.com', 'normal', 400, 5);
+INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order) VALUES (406, 'NPM', 'redirect_whitelist', 'npmjs.com', 'normal', 400, 6);
+INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order) VALUES (407, 'Vue.js', 'redirect_whitelist', 'vuejs.org', 'normal', 400, 7);
+INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order) VALUES (408, 'Vite', 'redirect_whitelist', 'vite.dev', 'normal', 400, 8);
+INSERT OR IGNORE INTO dictionaries (id, name, code, value, type, parent_id, sort_order) VALUES (409, 'Didton', 'redirect_whitelist', 'didton.com', 'normal', 400, 9);
+
 CREATE TABLE IF NOT EXISTS upload_configs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,

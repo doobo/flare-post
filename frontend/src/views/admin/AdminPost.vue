@@ -468,7 +468,7 @@
           <div class="w-full mt-6 bg-slate-900 border border-slate-800 rounded-xl p-4">
             <div class="text-[10px] font-bold text-slate-500 mb-2 uppercase tracking-wider">{{ t('admin_post_seo_preview') }}</div>
             <div class="space-y-1">
-              <div class="text-[11px] text-slate-400 truncate">https://cloud-offers.com/post/preview-id</div>
+              <div class="text-[11px] text-slate-400 truncate">https://didton.com/post/preview-id</div>
               <div class="text-sm text-sky-400 font-medium hover:underline cursor-pointer truncate">
                 {{ form.title || t('admin_post_unnamed') }} - FlarePost
               </div>

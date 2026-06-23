@@ -47,23 +47,21 @@ redirectApi.get("/redirect", async (c) => {
       .catch(console.error)
   );
 
-  // Check whitelist
+  // Check whitelist from dictionaries
   let isWhitelisted = false;
   try {
     const parsedUrl = new URL(targetUrl);
     const host = parsedUrl.host.toLowerCase();
     const ownHost = (c.req.header("host") || "").toLowerCase();
     
+    const whitelistResult: any = await c.env.DB
+      .prepare("SELECT value FROM dictionaries WHERE code = 'redirect_whitelist' AND value IS NOT NULL")
+      .all();
+    const whitelistDomains = (whitelistResult.results || []).map((row: any) => row.value.toLowerCase());
+    
     const whitelist = [
       ownHost,
-      "github.com",
-      "cloudflare.com",
-      "google.com",
-      "workers.cloudflare.com",
-      "npmtrends.com",
-      "npmjs.com",
-      "vuejs.org",
-      "vite.dev"
+      ...whitelistDomains
     ];
     
     isWhitelisted = whitelist.some(domain => host === domain || host.endsWith("." + domain));
@@ -79,7 +77,6 @@ redirectApi.get("/redirect", async (c) => {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>安全跳转提示 - Cloud Web</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
