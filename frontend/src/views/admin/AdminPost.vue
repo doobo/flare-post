@@ -336,6 +336,34 @@
                 <li>{{ t('admin_post_check_promo', { name: promoCode || t('admin_post_none') }) }}</li>
               </ul>
             </div>
+
+            <!-- Search Content Editor -->
+            <div class="border border-slate-200 rounded-xl p-4">
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                {{ t('admin_post_search_content') }}
+              </label>
+              <p class="text-[10px] text-slate-400 mb-2">{{ t('admin_post_search_content_desc') }}</p>
+              <textarea
+                v-model="searchContent"
+                rows="3"
+                maxlength="500"
+                class="w-full px-3.5 py-2 border border-slate-300 rounded-lg outline-none text-xs resize-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition-all"
+                :placeholder="t('admin_post_search_content_ph')"
+              ></textarea>
+              <div class="flex items-center justify-between mt-1.5">
+                <span class="text-[10px] text-slate-400 font-mono">{{ searchContent.length }} / 500</span>
+                <button
+                  type="button"
+                  @click="refreshSearchContent"
+                  class="text-[10px] text-indigo-600 hover:text-indigo-800 font-semibold transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  {{ t('admin_post_search_content_refresh') }}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -590,6 +618,26 @@ const showPromoCode = ref(true)
 const startDate = ref('')
 const endDate = ref('')
 const customDays = ref<number | null>(null)
+const searchContent = ref('')
+const SEARCH_CONTENT_MAX_LENGTH = 500
+const SEARCH_CONTENT_DEFAULT_LENGTH = 200
+
+const defaultSearchContent = computed(() => {
+  const content = form.value.content_type === 'markdown' ? form.value.content_md : form.value.content_html
+  if (!content) return ''
+  const text = content
+    .replace(/<\/?[^>]+(>|$)/g, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[#*`_~]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return text.slice(0, SEARCH_CONTENT_DEFAULT_LENGTH)
+})
+
+const refreshSearchContent = () => {
+  searchContent.value = defaultSearchContent.value
+}
+
 const applyCustomDays = () => {
   if (customDays.value && customDays.value > 0) {
     setEndDatePreset(customDays.value)
@@ -772,6 +820,10 @@ const goToStep = (step: number) => {
     }
   }
   currentStep.value = step
+  // Auto-generate search content when entering Step 3
+  if (step === 3 && !searchContent.value && defaultSearchContent.value) {
+    searchContent.value = defaultSearchContent.value
+  }
 }
 
 // Tag input functions
@@ -1019,6 +1071,7 @@ const fetchPost = async (id: string) => {
       startDate.value = fetchedMeta.start_date || ''
       endDate.value = fetchedMeta.end_date || ''
       discountStrength.value = fetchedMeta.discount_strength || ''
+      searchContent.value = data.search_content || ''
 
       tagsList.value = data.tags ? data.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : []
 
@@ -1099,6 +1152,7 @@ const saveDraft = (manual = false) => {
   const payload = {
     form: form.value,
     tagsList: tagsList.value,
+    searchContent: searchContent.value,
     metadata: {
       promo_code: promoCode.value,
       show_promo_code: showPromoCode.value,
@@ -1127,6 +1181,7 @@ const startAutosave = () => {
   lastSavedContent = JSON.stringify({
     form: form.value,
     tagsList: tagsList.value,
+    searchContent: searchContent.value,
     metadata: {
       promo_code: promoCode.value,
       show_promo_code: showPromoCode.value,
@@ -1145,6 +1200,7 @@ const startAutosave = () => {
       const payload = {
         form: form.value,
         tagsList: tagsList.value,
+        searchContent: searchContent.value,
         metadata: {
           promo_code: promoCode.value,
           show_promo_code: showPromoCode.value,
@@ -1180,6 +1236,7 @@ const restoreDraft = () => {
       const data = JSON.parse(draft)
       form.value = data.form || form.value
       tagsList.value = data.tagsList || []
+      searchContent.value = data.searchContent || ''
       
       const meta = data.metadata || {}
       promoCode.value = meta.promo_code || ''
@@ -1246,6 +1303,7 @@ const resetFormAndContinue = () => {
     content_type: 'markdown' 
   }
   tagsList.value = []
+  searchContent.value = ''
   promoCode.value = ''
   showPromoCode.value = true
   startDate.value = ''
@@ -1292,7 +1350,8 @@ const submitPost = async () => {
     category_id: form.value.category_id,
     tags: tagsList.value.join(','),
     content: contentWithFrontmatter,
-    content_type: form.value.content_type
+    content_type: form.value.content_type,
+    search_content: searchContent.value || null
   }
 
   try {

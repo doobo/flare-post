@@ -57,7 +57,14 @@ redirectApi.get("/redirect", async (c) => {
     const whitelistResult: any = await c.env.DB
       .prepare("SELECT value FROM dictionaries WHERE code = 'redirect_whitelist' AND value IS NOT NULL")
       .all();
-    const whitelistDomains = (whitelistResult.results || []).map((row: any) => row.value.toLowerCase());
+    const whitelistDomains = (whitelistResult.results || []).map((row: any) => {
+      const domain = row.value.toLowerCase();
+      try {
+        return new URL(`http://${domain}`).host;
+      } catch {
+        return domain;
+      }
+    });
     
     const whitelist = [
       ownHost,

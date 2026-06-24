@@ -87,85 +87,71 @@
       </div>
     </div>
 
-    <!-- Dict Modal -->
-    <div v-if="showModal" class="relative z-50" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-      <!-- Backdrop -->
-      <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" @click="closeModal"></div>
-      
-      <!-- Modal Scroll Container -->
-      <div class="fixed inset-0 z-10 overflow-y-auto">
-        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0" @click.self="closeModal">
-          <!-- Modal Content -->
-          <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden transform transition-all text-left my-8">
-            <form @submit.prevent="saveItem">
-              <div class="px-6 py-6 sm:p-8">
-                <h3 class="text-xl font-semibold text-slate-900 mb-1" id="modal-title">
-                  {{ isEditing ? t('admin_dict_modal_edit') : t('admin_dict_modal_add') }}
-                </h3>
-                <p class="text-xs text-slate-400 mb-6">
-                  {{ t('admin_dict_adding_to') }} <span class="font-semibold text-slate-600">{{ currentParentName }}</span>
-                </p>
-                
-                <div class="space-y-5">
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_dict_form_name') }}</label>
-                    <input v-model="form.name" type="text" required class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" :placeholder="t('admin_dict_ph_name')" />
-                  </div>
-                  
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_dict_form_code') }}</label>
-                    <input v-model="form.code" type="text" required class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm font-mono" :placeholder="t('admin_dict_ph_code')" />
-                  </div>
-                  
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_dict_form_type') }}</label>
-                    <div class="relative">
-                      <select v-model="form.type" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none appearance-none transition-shadow bg-white text-sm">
-                        <option value="normal">{{ t('admin_dict_type_normal_label') }}</option>
-                        <option value="encode">{{ t('admin_dict_type_encode_label') }}</option>
-                      </select>
-                      <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_dict_form_value') }}</label>
-                    <input v-model="form.value" type="text" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" :placeholder="t('admin_dict_ph_value')" />
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_dict_form_sort') }}</label>
-                    <input v-model.number="form.sort_order" type="number" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" placeholder="0" />
-                  </div>
-                  
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_dict_form_description') }}</label>
-                    <textarea v-model="form.description" rows="3" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" :placeholder="t('admin_dict_form_description')"></textarea>
-                  </div>
-                </div>
+    <!-- Dict Modal (reusable ModalDialog with expand/shrink) -->
+    <ModalDialog v-model="showModal" :title="isEditing ? t('admin_dict_modal_edit') : t('admin_dict_modal_add')">
+      <form @submit.prevent="saveItem">
+        <p class="text-xs text-slate-400 mb-6">
+          {{ t('admin_dict_adding_to') }} <span class="font-semibold text-slate-600">{{ currentParentName }}</span>
+        </p>
+        
+        <div class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_dict_form_name') }}</label>
+            <input v-model="form.name" type="text" required class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" :placeholder="t('admin_dict_ph_name')" />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_dict_form_code') }}</label>
+            <input v-model="form.code" type="text" required class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm font-mono" :placeholder="t('admin_dict_ph_code')" />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_dict_form_type') }}</label>
+            <div class="relative">
+              <select v-model="form.type" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none appearance-none transition-shadow bg-white text-sm">
+                <option value="normal">{{ t('admin_dict_type_normal_label') }}</option>
+                <option value="encode">{{ t('admin_dict_type_encode_label') }}</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
               </div>
-              
-              <div class="bg-slate-50 px-6 py-4 border-t border-slate-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-                <button type="button" @click="closeModal" class="w-full sm:w-auto px-6 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 text-sm">
-                  {{ t('admin_dict_cancel') }}
-                </button>
-                <button type="submit" :disabled="saving" class="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-60 flex items-center justify-center text-sm">
-                  <svg v-if="saving" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  {{ saving ? t('admin_dict_saving') : t('admin_dict_save') }}
-                </button>
-              </div>
-            </form>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_dict_form_value') }}</label>
+            <input v-model="form.value" type="text" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" :placeholder="t('admin_dict_ph_value')" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_dict_form_sort') }}</label>
+            <input v-model.number="form.sort_order" type="number" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" placeholder="0" />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">{{ t('admin_dict_form_description') }}</label>
+            <textarea v-model="form.description" rows="3" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-shadow text-sm" :placeholder="t('admin_dict_form_description')"></textarea>
           </div>
         </div>
-      </div>
-    </div>
+      </form>
+
+      <template #footer>
+        <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 w-full">
+          <button type="button" @click="closeModal" class="w-full sm:w-auto px-6 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 text-sm">
+            {{ t('admin_dict_cancel') }}
+          </button>
+          <button type="submit" :disabled="saving" @click="saveItem" class="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-60 flex items-center justify-center text-sm">
+            <svg v-if="saving" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ saving ? t('admin_dict_saving') : t('admin_dict_save') }}
+          </button>
+        </div>
+      </template>
+    </ModalDialog>
   </div>
 </template>
 
@@ -175,6 +161,7 @@ import { useRouter } from 'vue-router'
 import { showToast } from '@/utils/toast'
 import { showConfirm } from '@/utils/confirm'
 import { t } from '@/utils/i18n'
+import ModalDialog from '@/components/ModalDialog.vue'
 
 const router = useRouter()
 

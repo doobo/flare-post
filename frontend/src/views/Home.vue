@@ -269,6 +269,7 @@ interface Post {
   content_type?: string
   category: string
   created_at: string
+  search_content?: string
   discount?: string
   remainingDays?: number
 }
@@ -303,6 +304,7 @@ const totalCount = ref(0)
 const hasMore = ref(false)
 
 const getPreviewText = (post: Post): string => {
+  if (post.search_content) return post.search_content
   let rawText = post.content_md || ''
   const { body } = parseFrontmatter(rawText)
   let text = body

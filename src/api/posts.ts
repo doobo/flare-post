@@ -96,7 +96,7 @@ postsApi.get("/:id", async (c) => {
 
 postsApi.post("/", authMiddleware, async (c) => {
   const body = await c.req.json();
-  let { title, category, category_id, tags, content, content_md, content_type } = body;
+  let { title, category, category_id, tags, content, content_md, content_type, search_content } = body;
   
   const finalContent = content || content_md || '';
   const finalContentType = content_type || 'markdown';
@@ -119,8 +119,8 @@ postsApi.post("/", authMiddleware, async (c) => {
   }
 
   const { results: postResults } = await c.env.DB
-    .prepare("INSERT INTO posts (title, content_md, content_type, category_id, category, tags) VALUES (?, ?, ?, ?, ?, ?) RETURNING id")
-    .bind(title, updatedContent, finalContentType, finalCategoryId, category, tags)
+    .prepare("INSERT INTO posts (title, content_md, content_type, category_id, category, tags, search_content) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id")
+    .bind(title, updatedContent, finalContentType, finalCategoryId, category, tags, search_content || null)
     .all<any>();
 
   const postId = postResults[0].id;
@@ -130,7 +130,7 @@ postsApi.post("/", authMiddleware, async (c) => {
 postsApi.put("/:id", authMiddleware, async (c) => {
   const id = c.req.param("id");
   const body = await c.req.json();
-  let { title, category, category_id, tags, content, content_md, content_type } = body;
+  let { title, category, category_id, tags, content, content_md, content_type, search_content } = body;
 
   const finalContent = content || content_md || '';
   const finalContentType = content_type || 'markdown';
@@ -153,8 +153,8 @@ postsApi.put("/:id", authMiddleware, async (c) => {
   }
 
   await c.env.DB
-    .prepare("UPDATE posts SET title = ?, content_md = ?, content_type = ?, category_id = ?, category = ?, tags = ? WHERE id = ?")
-    .bind(title, updatedContent, finalContentType, finalCategoryId, category, tags, id)
+    .prepare("UPDATE posts SET title = ?, content_md = ?, content_type = ?, category_id = ?, category = ?, tags = ?, search_content = ? WHERE id = ?")
+    .bind(title, updatedContent, finalContentType, finalCategoryId, category, tags, search_content || null, id)
     .run();
 
   // Clear old links from legacy link table

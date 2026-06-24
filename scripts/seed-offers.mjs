@@ -178,8 +178,8 @@ Try free for 30 days — no credit card required.`
 ];
 
 const insert = db.prepare(`
-  INSERT INTO posts (title, content_md, content_type, category_id, category, tags, status, created_at)
-  VALUES (?, ?, 'markdown', 0, ?, ?, 'published', datetime('now', ?))
+  INSERT INTO posts (title, content_md, content_type, category_id, category, tags, search_content, status, created_at)
+  VALUES (?, ?, 'markdown', 0, ?, ?, ?, 'published', datetime('now', ?))
 `);
 
 const transaction = db.transaction(() => {
@@ -200,10 +200,17 @@ const transaction = db.transaction(() => {
       contentMd = `---\n${frontmatter.join('\n')}\n---\n${contentMd}`;
     }
 
+    // Generate search content from first ~200 chars of body
+    const searchContent = o.body
+      .replace(/[#*`_~\[\]]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 200);
+
     // Stagger created_at so they're in a nice order
     const offset = `-${offers.length - i} hours`;
 
-    insert.run(o.title, contentMd, o.category, o.tags, offset);
+    insert.run(o.title, contentMd, o.category, o.tags, searchContent, offset);
     console.log(`  ✓ ${o.title}`);
   }
 });

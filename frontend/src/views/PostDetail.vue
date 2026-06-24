@@ -7,7 +7,7 @@
       @update:searchQuery="onSearch"
       @selectParentCategory="onSelectCategory"
     />
-    <div class="max-w-4xl mx-auto pt-16 px-3 sm:px-5 lg:px-6 pb-24">
+    <div class="max-w-4xl mx-auto pt-16 px-5 sm:px-6 lg:px-8 pb-24">
 
       <div v-if="loading" class="flex justify-center py-20">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>

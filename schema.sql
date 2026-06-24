@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS posts (
   category_id INTEGER DEFAULT 0,
   category TEXT NOT NULL,
   tags TEXT,
+  search_content TEXT,
   status TEXT NOT NULL DEFAULT 'published',
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

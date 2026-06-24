@@ -102,6 +102,9 @@ export class LocalD1 {
       this.db.exec("ALTER TABLE posts ADD COLUMN category_id INTEGER DEFAULT 0;");
     } catch (e) {}
     try {
+      this.db.exec("ALTER TABLE posts ADD COLUMN search_content TEXT;");
+    } catch (e) {}
+    try {
       this.db.exec("ALTER TABLE upload_configs ADD COLUMN proxy_prefix TEXT;");
     } catch (e) {}
     try {
