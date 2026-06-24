@@ -619,7 +619,6 @@ const startDate = ref('')
 const endDate = ref('')
 const customDays = ref<number | null>(null)
 const searchContent = ref('')
-const SEARCH_CONTENT_MAX_LENGTH = 500
 const SEARCH_CONTENT_DEFAULT_LENGTH = 200
 
 const defaultSearchContent = computed(() => {
