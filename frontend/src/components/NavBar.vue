@@ -33,7 +33,7 @@
         </button>
       </div>
 
-      <!-- Right: Search -->
+      <!-- Right: Search + Language -->
       <div class="flex items-center gap-2 ml-auto lg:ml-0">
         <!-- Search desktop -->
         <div class="relative flex items-center">
@@ -55,16 +55,22 @@
               @blur="onBlur"
               class="w-32 sm:w-48 text-sm bg-transparent border-0 outline-none focus:ring-0 p-0 text-slate-700 placeholder:text-slate-400"
             />
+            <button @click="searchExpanded = false" class="p-0.5 rounded hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-colors">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
+
+        <!-- Language Switcher (far right) -->
+        <button @click="toggleLang" class="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-colors ml-2" :title="currentLang === 'zh-CN' ? 'Switch to English' : '切换到中文'">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {{ currentLang === 'zh-CN' ? 'EN' : '中' }}
+        </button>
       </div>
-      <!-- Language Switcher (far right) -->
-      <button @click="toggleLang" class="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-colors ml-2" :title="currentLang === 'zh-CN' ? 'Switch to English' : '切换到中文'">
-        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        {{ currentLang === 'zh-CN' ? 'EN' : '中' }}
-      </button>
     </div>
 
     <!-- Mobile menu overlay -->

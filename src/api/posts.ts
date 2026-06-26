@@ -37,7 +37,18 @@ postsApi.get("/", async (c) => {
     params.push(category);
   }
 
+  const parentCategory = c.req.query("parent_category");
+  if (parentCategory) {
+    conditions.push("(category = ? OR category LIKE ?)");
+    params.push(parentCategory, parentCategory + " / %");
+  }
+
   const where = conditions.join(" AND ");
+
+  let orderBy = "created_at DESC";
+  if (sort === "ending_soon") {
+    orderBy = "created_at ASC";
+  }
 
   // Count total matching posts
   const countResult = await c.env.DB.prepare(
@@ -45,10 +56,16 @@ postsApi.get("/", async (c) => {
   ).bind(...params).first<any>();
   const total = countResult?.total || 0;
 
-  // Fetch posts
-  let orderBy = "created_at DESC";
-  if (sort === "ending_soon") {
-    orderBy = "created_at ASC";
+  // Pagination (only if page param is explicitly provided)
+  if (page > 0) {
+    const offset = (page - 1) * limit;
+    const fetchQuery = `SELECT * FROM posts WHERE ${where} ORDER BY ${orderBy} LIMIT ? OFFSET ?`;
+    const { results } = await c.env.DB.prepare(fetchQuery).bind(...params, limit, offset).all();
+    const paginated = (results || []).map((item: any) => ({
+      ...item,
+      content: item.content_md
+    }));
+    return c.json({ posts: paginated, total, page, limit });
   }
 
   const fetchQuery = `SELECT * FROM posts WHERE ${where} ORDER BY ${orderBy}`;
@@ -69,13 +86,6 @@ postsApi.get("/", async (c) => {
       if (!bEnd) return -1;
       return new Date(aEnd).getTime() - new Date(bEnd).getTime();
     });
-  }
-
-  // Pagination (only if page param is explicitly provided)
-  if (page > 0) {
-    const offset = (page - 1) * limit;
-    const paginated = posts.slice(offset, offset + limit);
-    return c.json({ posts: paginated, total, page, limit });
   }
 
   return c.json(posts);

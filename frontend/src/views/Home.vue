@@ -21,29 +21,12 @@
             </svg>
           </button>
           <div v-if="showCategoryDropdown" class="absolute top-full left-0 mt-1 w-56 bg-white border border-slate-200 rounded-xl shadow-xl z-20 max-h-72 overflow-y-auto p-2">
-            <button @click="selectCategory('')" :class="selectedCategory === '' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-600 hover:bg-slate-50'" class="w-full text-left px-3 py-1.5 rounded-lg text-sm font-medium transition-colors">
-              {{ t('all_categories') }}
-            </button>
-            <div class="border-t border-slate-100 my-1"></div>
-            <div v-for="parent in categoriesTree" :key="parent.id">
-              <div class="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ parent.name }}</div>
-              <button
-                v-for="child in parent.children" :key="child.id"
-                @click="selectCategory(child.label)"
-                :class="selectedCategory === child.label ? 'text-indigo-600 bg-indigo-50' : 'text-slate-600 hover:bg-slate-50'"
-                class="w-full text-left px-3 py-1.5 pl-6 rounded-lg text-sm transition-colors"
-              >
-                {{ child.name }}
-              </button>
-              <button
-                v-if="!parent.children || parent.children.length === 0"
-                @click="selectCategory(parent.label)"
-                :class="selectedCategory === parent.label ? 'text-indigo-600 bg-indigo-50' : 'text-slate-600 hover:bg-slate-50'"
-                class="w-full text-left px-3 py-1.5 pl-6 rounded-lg text-sm transition-colors"
-              >
-                {{ parent.name }}
-              </button>
-            </div>
+            <CategoryTree
+              :tree="categoriesTree"
+              :selected-value="selectedCategory"
+              :all-label="t('all_categories')"
+              @select="selectCategory"
+            />
           </div>
         </div>
 
@@ -57,7 +40,7 @@
         <!-- Sort -->
         <select
           v-model="sortBy"
-          @change="fetchPosts()"
+          @change="handleSortChange"
           class="text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white text-slate-600 focus:ring-2 focus:ring-indigo-500 outline-none"
         >
           <option value="latest">{{ t('sort_latest') }}</option>
@@ -102,6 +85,7 @@
           <!-- Card Image -->
           <router-link :to="'/post/' + post.id" class="h-40 overflow-hidden bg-slate-100 block">
             <img :src="getPostImage(post)" :alt="post.title"
+              loading="lazy"
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               @error="handleImgError" />
           </router-link>
@@ -152,7 +136,7 @@
           </div>
           <h3 class="text-xl font-medium text-slate-900 mb-1">{{ t('empty_title') }}</h3>
           <p class="text-slate-500">{{ t('empty_desc') }}</p>
-          <button @click="searchQuery = ''; selectedCategory = ''; activeParent = ''; selectedCategoryLabel = t('all_categories'); fetchPosts()" class="mt-4 text-indigo-600 text-sm font-medium hover:text-indigo-700 transition-colors">
+          <button @click="resetFilters" class="mt-4 text-indigo-600 text-sm font-medium hover:text-indigo-700 transition-colors">
             {{ t('clear_filters') }}
           </button>
         </div>
@@ -201,32 +185,12 @@
             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ t('categories') }}</span>
           </div>
 
-          <button
-            @click="selectCategoryFab('')"
-            :class="selectedCategory === '' && activeParent === '' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-600 hover:bg-slate-50'"
-            class="w-full text-left px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
-          >
-            {{ t('all_categories') }}
-          </button>
-          <div v-for="parent in categoriesTree" :key="parent.id" class="mt-0.5">
-            <div class="px-3 py-0.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ parent.name }}</div>
-            <button
-              v-for="child in parent.children" :key="child.id"
-              @click="selectCategoryFab(child.label)"
-              :class="selectedCategory === child.label ? 'text-indigo-600 bg-indigo-50' : 'text-slate-600 hover:bg-slate-50'"
-              class="w-full text-left px-3 py-1 pl-6 rounded-lg text-sm transition-colors"
-            >
-              {{ child.name }}
-            </button>
-            <button
-              v-if="!parent.children || parent.children.length === 0"
-              @click="selectCategoryFab(parent.label)"
-              :class="selectedCategory === parent.label ? 'text-indigo-600 bg-indigo-50' : 'text-slate-600 hover:bg-slate-50'"
-              class="w-full text-left px-3 py-1 pl-6 rounded-lg text-sm transition-colors"
-            >
-              {{ parent.name }}
-            </button>
-          </div>
+          <CategoryTree
+            :tree="categoriesTree"
+            :selected-value="selectedCategory"
+            :all-label="t('all_categories')"
+            @select="selectCategoryFab"
+          />
         </div>
       </Transition>
     </div>
@@ -258,8 +222,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import NavBar from '@/components/NavBar.vue'
+import CategoryTree from '@/components/CategoryTree.vue'
 import QRCode from 'qrcode'
 
 interface Post {
@@ -281,13 +246,33 @@ interface CategoryNode {
   children: CategoryNode[]
 }
 
+interface DictionaryItem {
+  id: number
+  code: string
+  parent_id: number
+  sort_order: number
+  name: string
+}
+
+interface ApiResponse {
+  posts: Post[]
+  total: number
+  page: number
+  limit: number
+}
+
 import { t } from '@/utils/i18n'
 import { parseFrontmatter } from '@/utils/frontmatter'
+
+const POST_LIMIT = 20
+const CATEGORY_CACHE_KEY = 'flarepost_categories_cache'
+const CATEGORY_CACHE_TTL = 5 * 60 * 1000
 
 const posts = ref<Post[]>([])
 const loading = ref(false)
 const error = ref(false)
 const route = useRoute()
+const router = useRouter()
 const searchQuery = ref((route.query.q as string) || '')
 const selectedCategory = ref('')
 const activeParent = ref((route.query.category as string) || '')
@@ -299,7 +284,7 @@ const qrCodeDataUrl = ref('')
 const qrUrl = ref('')
 const categoriesTree = ref<CategoryNode[]>([])
 const sortBy = ref('latest')
-const page = ref(1)
+const currentPage = ref(1)
 const totalCount = ref(0)
 const hasMore = ref(false)
 
@@ -345,51 +330,45 @@ const formatDate = (dateStr: string): string => {
   return `${month}-${day} ${hours}:${mins}`
 }
 
-let fetchedAllPosts: Post[] = []
-const allResultsCount = ref(0)
-
-const filterPostsClientSide = () => {
-  let filtered = [...fetchedAllPosts]
-
-  if (activeParent.value) {
-    filtered = filtered.filter(p => p.category === activeParent.value || p.category.startsWith(activeParent.value + ' / '))
-  }
-
+const buildApiParams = (): URLSearchParams => {
+  const params = new URLSearchParams()
+  params.set('page', String(currentPage.value))
+  params.set('limit', String(POST_LIMIT))
+  params.set('sort', sortBy.value)
+  if (searchQuery.value) params.set('q', searchQuery.value)
   if (selectedCategory.value) {
-    filtered = filtered.filter(p => p.category === selectedCategory.value)
+    params.set('category', selectedCategory.value)
+  } else if (activeParent.value) {
+    params.set('parent_category', activeParent.value)
   }
-
-  allResultsCount.value = filtered.length
-
-  const limit = 20
-  posts.value = filtered.slice(0, limit)
-  totalCount.value = filtered.length
-  hasMore.value = filtered.length > limit
+  return params
 }
 
-const fetchPosts = async () => {
+const fetchPosts = async (append = false) => {
   loading.value = true
   error.value = false
-  page.value = 1
 
   try {
-    const params = new URLSearchParams()
-    if (searchQuery.value) params.set('q', searchQuery.value)
-    params.set('sort', sortBy.value)
-
+    const params = buildApiParams()
     const res = await fetch(`/api/posts?${params.toString()}`)
     if (!res.ok) throw new Error('Failed to fetch')
 
-    const data = await res.json()
-    const rawPosts: Post[] = Array.isArray(data) ? data : data.posts || []
-
-    fetchedAllPosts = rawPosts.map(p => ({
+    const data: ApiResponse = await res.json()
+    const processedPosts = (data.posts || []).map(p => ({
       ...p,
       discount: extractDiscount(p.content_md),
       remainingDays: calcRemainingDays(p.content_md)
     }))
 
-    filterPostsClientSide()
+    if (append) {
+      posts.value = [...posts.value, ...processedPosts]
+    } else {
+      posts.value = processedPosts
+    }
+
+    totalCount.value = data.total || 0
+    currentPage.value = data.page || 1
+    hasMore.value = (currentPage.value * POST_LIMIT) < totalCount.value
 
   } catch (e) {
     console.error('Failed to fetch posts', e)
@@ -400,33 +379,62 @@ const fetchPosts = async () => {
 }
 
 const loadMore = () => {
-  const limit = 20
-  const nextCount = posts.value.length + limit
-  posts.value = fetchedAllPosts.slice(0, nextCount)
-  hasMore.value = fetchedAllPosts.length > nextCount
+  currentPage.value++
+  fetchPosts(true)
+}
+
+const handleSortChange = () => {
+  currentPage.value = 1
+  fetchPosts()
+}
+
+const updateRoute = () => {
+  const query: Record<string, string> = {}
+  if (searchQuery.value) query.q = searchQuery.value
+  const categoryParam = selectedCategory.value || activeParent.value
+  if (categoryParam) query.category = categoryParam
+  router.replace({ query })
+}
+
+const handleCategorySelect = (label: string, isParent: boolean) => {
+  currentPage.value = 1
+  if (isParent) {
+    activeParent.value = label
+    selectedCategory.value = ''
+    selectedCategoryLabel.value = label || t('all_categories')
+  } else {
+    selectedCategory.value = label
+    selectedCategoryLabel.value = label || t('all_categories')
+    activeParent.value = ''
+  }
+  updateRoute()
+  fetchPosts()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 const onSelectParent = (name: string) => {
-  activeParent.value = name
-  selectedCategory.value = ''
-  selectedCategoryLabel.value = t('all_categories')
-  filterPostsClientSide()
+  handleCategorySelect(name, true)
 }
 
 const selectCategory = (label: string) => {
-  selectedCategory.value = label
-  selectedCategoryLabel.value = label || t('all_categories')
-  activeParent.value = ''
   showCategoryDropdown.value = false
-  filterPostsClientSide()
+  handleCategorySelect(label, false)
 }
 
 const selectCategoryFab = (label: string) => {
   showFabMenu.value = false
-  selectedCategory.value = label
-  selectedCategoryLabel.value = label || t('all_categories')
+  handleCategorySelect(label, false)
+}
+
+const resetFilters = () => {
+  searchQuery.value = ''
+  selectedCategory.value = ''
   activeParent.value = ''
-  filterPostsClientSide()
+  selectedCategoryLabel.value = t('all_categories')
+  router.replace({ query: {} })
+  currentPage.value = 1
+  fetchPosts()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 const scrollToTop = () => {
@@ -489,11 +497,11 @@ const handleImgError = (e: Event) => {
   }
 }
 
-const buildCategoryTree = (list: any[], parentId: number, parentName = ''): any[] => {
+const buildCategoryTree = (list: DictionaryItem[], parentId: number, parentName = ''): CategoryNode[] => {
   return list
-    .filter((item: any) => item.parent_id === parentId)
-    .sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0))
-    .map((item: any) => {
+    .filter((item: DictionaryItem) => item.parent_id === parentId)
+    .sort((a: DictionaryItem, b: DictionaryItem) => (a.sort_order || 0) - (b.sort_order || 0))
+    .map((item: DictionaryItem) => {
       const label = parentName ? `${parentName} / ${item.name}` : item.name
       return {
         id: item.id,
@@ -505,13 +513,27 @@ const buildCategoryTree = (list: any[], parentId: number, parentName = ''): any[
 }
 
 const fetchCategories = async () => {
+  const cached = localStorage.getItem(CATEGORY_CACHE_KEY)
+  if (cached) {
+    try {
+      const { data, timestamp } = JSON.parse(cached)
+      if (Date.now() - timestamp < CATEGORY_CACHE_TTL) {
+        categoriesTree.value = data
+        return
+      }
+    } catch {
+      // invalid cache, ignore
+    }
+  }
+
   try {
     const res = await fetch('/api/dictionaries')
     if (!res.ok) return
     const data = await res.json()
-    const raw = data.filter((item: any) => item.code === 'category_list')
+    const raw = data.filter((item: DictionaryItem) => item.code === 'category_list')
     const tree = buildCategoryTree(raw, 100)
     categoriesTree.value = tree
+    localStorage.setItem(CATEGORY_CACHE_KEY, JSON.stringify({ data: tree, timestamp: Date.now() }))
   } catch (e) {
     console.error('Failed to fetch categories', e)
   }
@@ -520,6 +542,7 @@ const fetchCategories = async () => {
 watch(searchQuery, () => {
   if (searchTimer) clearTimeout(searchTimer)
   searchTimer = setTimeout(() => {
+    currentPage.value = 1
     fetchPosts()
   }, 300)
 })
@@ -527,15 +550,17 @@ watch(searchQuery, () => {
 watch(() => route.query, (query) => {
   searchQuery.value = (query.q as string) || ''
   const cat = (query.category as string) || ''
+  currentPage.value = 1
   if (cat) {
     activeParent.value = cat
     selectedCategory.value = ''
+    selectedCategoryLabel.value = cat
   } else {
     activeParent.value = ''
     selectedCategory.value = ''
+    selectedCategoryLabel.value = t('all_categories')
   }
-  selectedCategoryLabel.value = activeParent.value || t('all_categories')
-  filterPostsClientSide()
+  fetchPosts()
 })
 
 let searchTimer: ReturnType<typeof setTimeout> | null = null
