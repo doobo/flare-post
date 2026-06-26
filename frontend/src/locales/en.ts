@@ -352,6 +352,7 @@ export default {
   detail_always_valid: 'Always valid',
   detail_copy: 'Copy',
   detail_copied: 'Promo code copied!',
+  back_home: 'Back to Home',
 
   // Upload Config
   admin_upload_config_title: 'Upload Configs',

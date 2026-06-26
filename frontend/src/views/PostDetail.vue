@@ -20,6 +20,9 @@
         </div>
         <h3 class="text-lg font-medium text-slate-900">{{ t('detail_not_found') }}</h3>
         <p class="mt-2 text-sm text-slate-500">{{ t('detail_not_found_desc') }}</p>
+        <router-link to="/" class="mt-6 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500 underline">
+          {{ t('back_home') }}
+        </router-link>
       </div>
       <div v-else>
         <div class="py-6">
@@ -31,12 +34,12 @@
               <svg class="mr-1.5 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              {{ new Date(post.created_at).toLocaleDateString() }}
+              {{ formatDate(post.created_at) }}
             </span>
           </div>
           <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight mb-6">{{ post.title }}</h1>
         </div>
-        
+
         <div v-if="hasMetadata" class="flex flex-wrap gap-4 mb-6">
           <div v-if="metadata.discount_strength" class="flex-1 min-w-[200px] bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex items-center space-x-3">
             <span class="text-2xl">💰</span>
@@ -53,7 +56,7 @@
                 <div class="text-base font-mono font-bold text-indigo-800">{{ metadata.promo_code }}</div>
               </div>
             </div>
-            <button @click="copyPromoCode" class="px-2 py-1 text-[10px] font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 active:scale-95 transition-all cursor-pointer leading-none">
+            <button @click="handleCopyPromoCode" class="px-2 py-1 text-[10px] font-semibold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 active:scale-95 transition-all cursor-pointer leading-none">
               {{ t('detail_copy') }}
             </button>
           </div>
@@ -64,13 +67,13 @@
               <div class="text-xs text-slate-700">
                 <div v-if="metadata.start_date">{{ t('detail_start', { date: formatDate(metadata.start_date) }) }}</div>
                 <div v-if="metadata.end_date">{{ t('detail_end', { date: formatDate(metadata.end_date) }) }}</div>
-                <div v-else class="font-medium text-amber-800">{{ t('detail_always_valid') }}</div>
+                <div v-if="!metadata.start_date && !metadata.end_date" class="font-medium text-amber-800">{{ t('detail_always_valid') }}</div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="prose prose-indigo prose-lg max-w-none prose-a:text-indigo-600 hover:prose-a:text-indigo-500 prose-img:rounded-xl prose-img:shadow-md" v-html="renderContent()"></div>
+        <div class="prose prose-indigo prose-lg max-w-none prose-a:text-indigo-600 hover:prose-a:text-indigo-500 prose-img:rounded-xl prose-img:shadow-md" v-html="renderedContent"></div>
       </div>
     </div>
   </div>
@@ -83,6 +86,7 @@ import MarkdownIt from 'markdown-it'
 import NavBar from '@/components/NavBar.vue'
 import { parseFrontmatter, type ContentMetadata } from '@/utils/frontmatter'
 import { showToast } from '@/utils/toast'
+import { copyText } from '@/utils/clipboard'
 import { t } from '@/utils/i18n'
 
 const route = useRoute()
@@ -125,24 +129,24 @@ const fetchCategories = async () => {
     console.error('Failed to fetch categories', e)
   }
 }
+
 const md = new MarkdownIt({ linkify: true, breaks: true })
 
 // Customize markdown renderer to open links in new tab
-const defaultRender = md.renderer.rules.link_open || function(tokens, idx, options, _env, self) {
-  return self.renderToken(tokens, idx, options);
-};
+const defaultRender = md.renderer.rules.link_open || function (tokens, idx, options, _env, self) {
+  return self.renderToken(tokens, idx, options)
+}
 
 md.renderer.rules.link_open = function (tokens, idx, options, _env, self) {
-  const aIndex = tokens[idx].attrIndex('target');
+  const aIndex = tokens[idx].attrIndex('target')
   if (aIndex < 0) {
-    tokens[idx].attrPush(['target', '_blank']);
+    tokens[idx].attrPush(['target', '_blank'])
   } else {
     // @ts-ignore
-    tokens[idx].attrs[aIndex][1] = '_blank';
+    tokens[idx].attrs[aIndex][1] = '_blank'
   }
-  return defaultRender(tokens, idx, options, _env, self);
-};
-
+  return defaultRender(tokens, idx, options, _env, self)
+}
 
 interface Post {
   id: number
@@ -179,40 +183,32 @@ const hasMetadata = computed(() => {
   return !!(meta.promo_code || meta.start_date || meta.end_date || meta.discount_strength)
 })
 
-const copyPromoCode = async () => {
-  if (metadata.value.promo_code) {
-    try {
-      await navigator.clipboard.writeText(metadata.value.promo_code)
-      showToast(t('detail_copied'), 'success')
-    } catch {
-      const ta = document.createElement('textarea')
-      ta.value = metadata.value.promo_code
-      ta.style.position = 'fixed'
-      ta.style.opacity = '0'
-      document.body.appendChild(ta)
-      ta.select()
-      document.execCommand('copy')
-      document.body.removeChild(ta)
+const parsedBody = computed<string>(() => {
+  if (!post.value) return ''
+  return parseFrontmatter(post.value.content_md).body
+})
+
+const renderedContent = computed<string>(() => {
+  if (!post.value) return ''
+  return post.value.content_type === 'richtext' ? parsedBody.value : md.render(parsedBody.value)
+})
+
+const handleCopyPromoCode = async () => {
+  const code = metadata.value.promo_code
+  if (code) {
+    const success = await copyText(code)
+    if (success) {
       showToast(t('detail_copied'), 'success')
     }
   }
 }
 
-const formatDate = (val: string) => {
+const formatDate = (val: string): string => {
   try {
     return new Date(val).toLocaleString()
-  } catch (e) {
+  } catch {
     return val
   }
-}
-
-const renderContent = () => {
-  if (!post.value) return ''
-  const { body } = parseFrontmatter(post.value.content_md)
-  if (post.value.content_type === 'richtext') {
-    return body
-  }
-  return md.render(body)
 }
 
 onMounted(() => {

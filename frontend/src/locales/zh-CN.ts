@@ -352,6 +352,7 @@ export default {
   detail_always_valid: '长期有效',
   detail_copy: '复制',
   detail_copied: '优惠码已复制！',
+  back_home: '返回首页',
 
   // Upload Config
   admin_upload_config_title: '上传配置',

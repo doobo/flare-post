@@ -10,34 +10,37 @@ export interface ContentMetadata {
   discount_strength?: string
 }
 
+function parseBool(val: string): boolean {
+  return val.toLowerCase() === 'true'
+}
+
 export function parseFrontmatter(content: string): { metadata: ContentMetadata; body: string } {
   if (!content) return { metadata: {}, body: '' }
-  
-  // Regex to match frontmatter delimited by ---
-  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/)
+
+  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)([\s\S]*)$/)
   if (match) {
     const yamlStr = match[1]
     const body = match[2]
     const metadata: ContentMetadata = {}
-    
-    yamlStr.split(/\r?\n/).forEach(line => {
-      const parts = line.split(':')
-      if (parts.length >= 2) {
-        const key = parts[0].trim() as keyof ContentMetadata
-        const val = parts.slice(1).join(':').trim()
-        
+
+    const lines = yamlStr.split(/\r?\n/)
+    for (const line of lines) {
+      const colonIdx = line.indexOf(':')
+      if (colonIdx > 0) {
+        const key = line.slice(0, colonIdx).trim()
+        const val = line.slice(colonIdx + 1).trim()
         if (key === 'show_promo_code') {
-          metadata[key] = val === 'true'
+          metadata[key] = parseBool(val)
         } else {
           // @ts-ignore
           metadata[key] = val
         }
       }
-    })
-    
+    }
+
     return { metadata, body }
   }
-  
+
   return { metadata: {}, body: content }
 }
 
